@@ -28,24 +28,39 @@ class RtreeDeleteError(FileHandlerError):
 # FILE HANDLERS
 
 class RtreeFileHandler(object):
-    def __init__(self, dataFile, d, blockBytes, nodeBytes, leafBytes, idBytes, rBytes,  pBytes, vBytes):
-        self.dataFile = dataFile                          # Data file where Rtree is stored
-        self.bBytes = blockBytes                          # disk block bytes
-        self.nBytes = nodeBytes                           # node bytes
-        self.lBytes = leafBytes                           # leaf bytes
-        self.idBytes = idBytes                            # identifier bytes
-        self.rBytes = rBytes                              # number of node mbr bytes
-        self.pBytes = pBytes                              # number of node pointers bytes
-        self.vBytes = vBytes                              # numer of vector bytes of a leaf
-        self.d = d                                          # Dimension
+    def __init__(self, loadDataFile, dataFile, d, blockBytes):
+        idBytes    = struct.calcsize("?")
+        rBytes     = 2*d*struct.calcsize("d")
+        pBytes     = blockBytes - idBytes - rBytes
+        vBytes     = blockBytes - idBytes
+
+        # adjustment
+        pBytes = pBytes - pBytes % struct.calcsize("i")
+        vBytes = vBytes - vBytes % struct.calcsize("d")
+
+        nodeBytes = rBytes + pBytes + idBytes
+        leafBytes = idBytes + vBytes
+
+        self.M              = pBytes/struct.calcsize("i")        # M: Maximum node entries
+        self.m              = self.M/2                           # m: Minimun node entries
+        self.loadDataFile   = "data/" + loadDataFile             # Data file where info can be load to create a new Rtree
+        self.dataFile       = "data/" + dataFile                 # Data file where Rtree is stored
+        self.bBytes         = blockBytes                         # disk block bytes
+        self.nBytes         = nodeBytes                          # node bytes
+        self.lBytes         = leafBytes                          # leaf bytes
+        self.idBytes        = idBytes                            # identifier bytes
+        self.rBytes         = rBytes                             # number of node mbr bytes
+        self.pBytes         = pBytes                             # number of node pointers bytes
+        self.vBytes         = vBytes                             # numer of vector bytes of a leaf
+        self.d              = d                                  # Dimension
 
         intSize   = struct.calcsize("i")
         floatSize = struct.calcsize("d")
         boolSize  = struct.calcsize("?")
 
-        self.r = int(rBytes/floatSize)
-        self.p = int(pBytes/intSize)
-        self.v = int(vBytes/floatSize)
+        self.r = int(rBytes/floatSize)  # number of floats to build a d-dimensional mbr
+        self.p = int(pBytes/intSize)    # number of ints pointers of a node
+        self.v = int(vBytes/floatSize)  # number of floats to build a leaf with data
         self.nodeId = True
         self.leafId = False
 
@@ -57,6 +72,15 @@ class RtreeFileHandler(object):
         f = io.open(self.dataFile,'w+b')
         f.write("")
         f.close()
+
+    def printInfo(self):
+        print "Block Bytes:" + str(self.bBytes)
+        print "Id Bytes: " + str(self.idBytes)
+        print "Node Bytes :" + str(self.nBytes)
+        print "Leaf Bytes :" + str(self.lBytes)
+        print "p[" + str(self.p) + "]" + "\t\tbytes: " + str(self.pBytes)
+        print "r[" + str(self.r) + "]" + "\t\t\tbytes: " + str(self.rBytes)
+        print "v[" + str(self.v) + "]" + "\t\tbytes: " + str(self.vBytes)
 
     def write(self, buf, offset, dataFile = None):
         if dataFile == None:
@@ -110,15 +134,15 @@ class RtreeFileHandler(object):
             raise RtreeWriteError()
 
     def writeNode(self, dataNode):
-        ranges   = dataNode.mbr
-        pointers = dataNode.pointers
+        ranges   = dataNode.dumpMbr()
+        pointers = dataNode.dumpPointers()
         idVal   = self.nodeId
 
         buf = struct.pack('1b', idVal) + struct.pack('%sd' % self.r,  *ranges) + struct.pack('%si' % self.p,  *pointers)
         self.write(buf, dataNode.offset)
 
     def writeLeaf(self, dataLeaf):
-        vectors = dataLeaf.vectors
+        vectors = dataLeaf.dump()
         idVal = self.leafId
 
         buf = struct.pack('1b', idVal) + struct.pack('%sd' % self.v,  *vectors)
@@ -151,7 +175,7 @@ class RtreeFileHandler(object):
 
             mbr      = struct.unpack('%sd' % self.r,  buf1)
             pointers = struct.unpack('%si' % self.p,  buf2)
-            return MNode(maxE = self.p, d = self.d, offset = offset, mbr = mbr, pointers = pointers)
+            return MNode(maxE = self.p, d = self.d, offset = offset, mbrList = mbr, pointers = pointers)
         except:
             raise RtreeNodeReadError()
 
@@ -161,7 +185,7 @@ class RtreeFileHandler(object):
             bufLeaf = adjBuf[self.idBytes:self.lBytes]
 
             vectors = struct.unpack('%sd' % self.v,  bufLeaf)
-            return MLeaf(maxE = self.v, d = self.d, offset = offset, vectors = vectors)
+            return MLeaf(maxE = self.v, d = self.d, offset = offset, vectorList = vectors)
         except:
             raise RtreeLeafReadError()
 
@@ -170,29 +194,29 @@ class RtreeFileHandler(object):
         buff         = struct.pack('1i',d) + struct.pack('1i',n) + struct.pack('%sd' % len(randVectors), *randVectors)
         self.write( buff, 0, dataFile)
 
-    def getVectors(self, vectorsFile):
+    def getVectors(self):
         intSize    = struct.calcsize("i")
         doubleSize = struct.calcsize("d")
         offset      = 0
 
-        d       = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = vectorsFile)))[0]
+        d       = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
         offset  = offset + intSize
 
-        size    = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = vectorsFile)))[0]
+        size    = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
         offset  = offset + intSize
 
         vectorsBytes = size*doubleSize
-        return struct.unpack('%sd' % size, self.read(bytes = vectorsBytes, offset = offset, dataFile = vectorsFile))
+        return struct.unpack('%sd' % size, self.read(bytes = vectorsBytes, offset = offset, dataFile = self.loadDataFile))
 
 def ioTest():
     n = 10
     floatlist = [random.random() for _ in range(n)]
     buf = struct.pack('%sd' % n,  *floatlist)
 
-    f = io.open('test.bin',  'wb')
+    f = io.open('data/test.bin',  'wb')
     f.write(buf)
 
-    f = io.open('test.bin',  'rb')
+    f = io.open('data/test.bin',  'rb')
     buf = f.read(struct.calcsize("d")*n)
     floatlist2 = struct.unpack('%sd' % n,  buf)
 
@@ -201,49 +225,23 @@ def ioTest():
     print floatlist[0] == floatlist2[0]
 
 def rtreeFileHandlerTest():
-    d           = 2
-    bBytes     = 4096
-    idBytes    = struct.calcsize("?")
-    rBytes     = 2*d*struct.calcsize("d")
-    pBytes     = bBytes - idBytes - rBytes
-    vBytes     = bBytes - idBytes
+    d = 2
+    blockBytes = 4096
 
-    print "Id Bytes: " + str(idBytes)
-    print "Pointers Bytes: " + str(pBytes)
-    print "Region Bytes: " + str(rBytes)
-    print "Vectors Bytes: " + str(vBytes)
-
-    # adjustment
-    pBytes = pBytes - pBytes % struct.calcsize("i")
-    vBytes = vBytes - vBytes % struct.calcsize("d")
-
-    print "Adj Pointers Bytes: " + str(pBytes)
-    print "Adj Vectors Bytes: " + str(vBytes)
-
-    nBytes = rBytes + pBytes + idBytes
-    lBytes = idBytes + vBytes
-
-    print "Node Bytes:" + str(nBytes)
-    print "Leaf Bytes:" + str(lBytes)
-
-    nfh = RtreeFileHandler( dataFile = "rtree" + str(d) + "D.bin",
+    nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
+                            dataFile        = "rtree" + str(d) + "D.bin",
                             d = d,
-                            blockBytes = bBytes,
-                            nodeBytes = nBytes,
-                            leafBytes = lBytes,
-                            idBytes = idBytes,
-                            rBytes = rBytes,
-                            pBytes = pBytes,
-                            vBytes = vBytes)
+                            blockBytes = blockBytes)
+    nfh.printInfo()
 
     # Node write/read testing
     offset = 0
     mbr = [0.5,0.6,0.1,0.15]
-    pointers = [nBytes+1, nBytes*2 + 1]
+    pointers = [blockBytes+1, blockBytes*2 + 1]
 
     # writing
-    dataNode = MNode(maxE = nfh.p, d = d, offset = offset, mbr = mbr, pointers = pointers)
-    dataNode.set(mbr, pointers)
+    dataNode = MNode(maxE = nfh.p, d = d, offset = offset, mbrList = mbr, pointers = pointers)
+    # dataNode.printRtree()
     nfh.writeNode(dataNode)
 
     # reading
@@ -258,7 +256,7 @@ def rtreeFileHandlerTest():
     vectors = [0.23,0.45,0.56,-0.1]
 
     # writing
-    dataLeaf = MLeaf(maxE = nfh.v, d = d, offset = offset, vectors = vectors)
+    dataLeaf = MLeaf(maxE = nfh.v, d = d, offset = offset, vectorList = vectors)
     nfh.writeLeaf(dataLeaf)
 
     # reading

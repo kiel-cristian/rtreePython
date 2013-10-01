@@ -4,8 +4,6 @@ import struct
 from FileHandler import *
 from MRtree import *
 
-NodeBytes = 4096 # Bytes per node
-
 #  ERRORS
 class RtreeHeightError(Exception):
     def __init__(self):
@@ -16,44 +14,31 @@ class RtreeHeightError(Exception):
 class Rtree(object):
     # d : Tree object entries dimensions
     # n : Maximun object entries
-    def __init__(self, d, n = 100000):
-        bBytes     = NodeBytes
-        idBytes    = struct.calcsize("?")
-        rBytes     = 2*d*struct.calcsize("d")
-        pBytes     = bBytes - idBytes - rBytes
-        vBytes     = bBytes - idBytes
-
-        # adjustment
-        pBytes = pBytes - pBytes % struct.calcsize("i")
-        vBytes = vBytes - vBytes % struct.calcsize("d")
-
-        nBytes = rBytes + pBytes + idBytes
-        lBytes = idBytes + vBytes
-
-        nfh = RtreeFileHandler( dataFile = "rtree" + str(d) + "D.bin",
-                                d = d,
-                                blockBytes = bBytes,
-                                nodeBytes = nBytes,
-                                leafBytes = lBytes,
-                                idBytes = idBytes,
-                                rBytes = rBytes,
-                                pBytes = pBytes,
-                                vBytes = vBytes)
+    def __init__(self, d, blockBytes = 4096, maxE = 100000):
+        nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
+                                dataFile        = "rtree" + str(d) + "D.bin",
+                                d               = d,
+                                blockBytes      = blockBytes)
 
         self.nfh = nfh
-        self.M = pBytes/struct.calcsize("i")       # M:          Maximum node entries
-        self.m = self.M/2                           # m:          Minimun node entries
         self.cache = []                             # cache:      Rtree node cache
         self.k = 0                                  # k:          Nodes on cache
-        self.maxK = log(n, self.M) -1              # maxK:      Max nodes on cache
-        self.dataFile = "data" + str(d) + "D.bin"  # dataFile:  Data for loading vectors
+        self.maxK = log(maxE, self.M()) -1            # maxK:      Max nodes on cache
 
         # Init Rtree
-        root = MNode(maxE = self.nfh.p, d = d, offset = 0, mbrLen = self.nfh.r, pointersLen = self.nfh.p)
+        root = MNode(maxE = self.nfh.p, d = d, offset = 0, mbrList = Mbr(d).dump(), pointers = [])
         root.setAsRoot()
         self.currentNode = root
         self.root     = True
         self.nfh.addTree(self.currentNode)
+
+    # Minimun node entries
+    def m(self):
+        return self.nfh.m
+
+    # Maximun node entries
+    def M(self):
+        return self.nfh.M
 
     def needToSplit(self):
         return self.elems + 1 > self.M
@@ -68,7 +53,7 @@ class Rtree(object):
         return EmptyNode(maxE = self.nfh.p, d = d, offset = 0, mbrLen = self.nfh.r, pointersLen = self.nfh.p)
 
     def loadRtreeData(self):
-        vectors = self.nfh.getVectors(self.dataFile)
+        vectors = self.nfh.getVectors()
         for v in vectors:
             self.insert(v)
 

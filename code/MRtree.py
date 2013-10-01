@@ -45,7 +45,7 @@ class MNode(MRtree):
         return self.mbr.dump()
 
     def dumpPointers(self):
-        return self.pointers + [-1 for _ in range(self.elemsM - self.elems + 1)]
+        return self.pointers + [-1 for _ in range(self.elemsM - self.elems)]
 
     def checkExpand(self, mbr):
         return self.mbr.checkExpand(mbr) and self.elems +1 < self.elemsM
@@ -77,7 +77,7 @@ class MLeaf(MRtree):
         self.mbrs[self.elems] = self.mbrs[self.elems].setPoint(point)
 
     def dump(self):
-        return [val for subl in self.vectors for val in subl] + [-2 for _ in range(self.elemsM - self.elems + 1)]
+        return [val for subl in self.vectors for val in subl] + [-2 for _ in range(self.elemsM - self.elems)]
 
     def printRtree(self):
         print "Leaf:"
@@ -102,13 +102,15 @@ class MLeaf(MRtree):
 if __name__=="__main__":
     node = MNode(maxE = 20, d = 2, offset = 10,  mbrList = [0.1, 0.1, 0.2, 0.2],  pointers = [1, 500, 1000])
     leaf = MLeaf(maxE = 8, d = 2, offset = 10, vectorList = [[1.0,2.5]])
+
     node.printRtree()
+    print "dumpMbr\t\t\t[" + str(len(node.dumpMbr())) + "]: " + str(node.dumpMbr())
+    print "dumpPointer\t[" + str(len(node.dumpPointers())) + "]: " + str(node.dumpPointers())
+
     leaf.printRtree()
+    print "dump\t[" + str(len(leaf.dump())) + "]: " + str(leaf.dump())
 
-    #emptyNode = EmptyNode(maxE = 10, d = 2, offset = 10, mbrLen = 2, pointersLen = 100)
-    #emptyNode.printRtree()
-    #emptyLeaf = EmptyLeaf(maxE = 8, d = 2, offset = 10, vectorsLen = 2)
-    #emptyLeaf.printRtree()
-
-    print node.dump()
-    print leaf.dump()
+    node2 = MNode(maxE = 1, d = 2, offset = 10,  mbrList = [0.1, 0.1, 0.2, 0.2],  pointers = [])
+    node2.printRtree()
+    print "dumpMbr\t\t\t[" + str(len(node2.dumpMbr())) + "]: " + str(node2.dumpMbr())
+    print "dumpPointer\t[" + str(len(node2.dumpPointers())) + "]: " + str(node2.dumpPointers())
