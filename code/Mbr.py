@@ -1,8 +1,27 @@
+class MbrError(Exception):
+    def __init__(self):
+        self.value = "mbr error"
+    def __str__(self):
+        return repr(self.value)
+class MbrDataListLengthError(MbrError):
+    pass
+class MbrPointDimensionError(MbrError):
+    pass
+
 class Mbr:
     def __init__(self, d, minV = 0, maxV = 1):
         self.d          = d
         self.coords     = [maxV,minV]*self.d
         self.dRanges    = self.listToRange(d, self.coords)
+
+    def toStr(self):
+        return str(self.coords)
+
+    def len(self):
+        return self.d*2
+
+    def dump(self):
+        return self.coords
 
     def listToRange(self, d, coords):
         dRanges = []
@@ -13,15 +32,15 @@ class Mbr:
         return dRanges
 
     def setRange(self, dataList):
-        if len(dataList) != self.d*2:
-            raise "Error on dataList length"
+        if len(dataList) != self.len():
+            raise MbrDataListLengthError()
 
         self.coords  = dataList
         self.dRanges = self.listToRange(self.d, dataList)
 
     def setPoint(self, dPoint):
         if len(dPoint) != self.d:
-            raise "Error on point dimension"
+            raise MbrPointDimensionError()
 
         dup = [[x,x] for x in dPoint]
         self.coords = [val for subl in dup for val in subl]
