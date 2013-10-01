@@ -15,7 +15,7 @@ class Mbr:
         self.dRanges    = self.listToRange(d, self.coords)
 
     def toStr(self):
-        return str(self.coords)
+        return str(self.dRanges)
 
     def len(self):
         return self.d*2

@@ -1,6 +1,6 @@
 import io
 import sys
-from CompactRtree import *
+from MRtree import *
 import random
 import struct
 
@@ -19,7 +19,7 @@ class RtreeLeafReadError(FileHandlerError):
     pass
 class RtreeWriteError(FileHandlerError):
     def __init__(self):
-        self.value = "writing error, can't get type, expecting CompactRtree."
+        self.value = "writing error, can't get type, expecting MRtree."
 class RtreeDeleteError(FileHandlerError):
     def __init__(self):
         self.value = "deleting error, can't get type, expecting EmptyNode or EmptyLeaf."
@@ -81,53 +81,53 @@ class RtreeFileHandler(object):
         f.close()
         return data
 
-    def deleteTree(self, compact):
-        if type(compact) == EmptyNode:
-            self.writeNode(compact)
-            self.availableOffsets = self.availableOffsets + compact.offset
-        elif type(compact) == EmptyLeaf:
-            self.writeLeaf(compact)
-            self.availableOffsets = self.availableOffsets + compact.offset
+    def deleteTree(self, data):
+        if type(data) == EmptyNode:
+            self.writeNode(data)
+            self.availableOffsets = self.availableOffsets + data.offset
+        elif type(data) == EmptyLeaf:
+            self.writeLeaf(data)
+            self.availableOffsets = self.availableOffsets + data.offset
         else:
             raise RtreeDeleteError()
 
-    def addTree(self,compact):
+    def addTree(self,data):
         if len(self.availableOffsets) > 0:
-            compact.offset = self.availableOffsets[0]
+            data.offset = self.availableOffsets[0]
             self.availableOffsets = self.availableOffsets[1:]
         else:
-            compact.offset = self.lastOffset
-        self.writeTree(compact)
+            data.offset = self.lastOffset
+        self.writeTree(data)
         self.lastOffset = self.lastOffset + self.bBytes
 
-    def writeTree(self, compact):
-        t = type(compact)
-        if t == CompactNode or t == EmptyNode:
-            self.writeNode(compact)
-        elif t == CompactLeaf or t == EmptyLeaf:
-            self.writeLeaf(compact)
+    def writeTree(self, data):
+        t = type(data)
+        if t == MNode or t == EmptyNode:
+            self.writeNode(data)
+        elif t == MLeaf or t == EmptyLeaf:
+            self.writeLeaf(data)
         else:
             raise RtreeWriteError()
 
-    def writeNode(self, compactNode):
-        ranges   = compactNode.mbr
-        pointers = compactNode.pointers
+    def writeNode(self, dataNode):
+        ranges   = dataNode.mbr
+        pointers = dataNode.pointers
         idVal   = self.nodeId
 
         buf = struct.pack('1b', idVal) + struct.pack('%sd' % self.r,  *ranges) + struct.pack('%si' % self.p,  *pointers)
-        self.write(buf, compactNode.offset)
+        self.write(buf, dataNode.offset)
 
-    def writeLeaf(self, compactLeaf):
-        vectors = compactLeaf.vectors
+    def writeLeaf(self, dataLeaf):
+        vectors = dataLeaf.vectors
         idVal = self.leafId
 
         buf = struct.pack('1b', idVal) + struct.pack('%sd' % self.v,  *vectors)
-        self.write(buf, compactLeaf.offset)
+        self.write(buf, dataLeaf.offset)
 
     def isNode(self,offset):
         if offset < 0:
             return False
-        elif type(self.readTree(offset)) == CompactNode:
+        elif type(self.readTree(offset)) == MNode:
             return True
         else:
             return False
@@ -151,7 +151,7 @@ class RtreeFileHandler(object):
 
             mbr      = struct.unpack('%sd' % self.r,  buf1)
             pointers = struct.unpack('%si' % self.p,  buf2)
-            return CompactNode(maxE = self.p, d = self.d, offset = offset, mbr = mbr, pointers = pointers)
+            return MNode(maxE = self.p, d = self.d, offset = offset, mbr = mbr, pointers = pointers)
         except:
             raise RtreeNodeReadError()
 
@@ -161,7 +161,7 @@ class RtreeFileHandler(object):
             bufLeaf = adjBuf[self.idBytes:self.lBytes]
 
             vectors = struct.unpack('%sd' % self.v,  bufLeaf)
-            return CompactLeaf(maxE = self.v, d = self.d, offset = offset, vectors = vectors)
+            return MLeaf(maxE = self.v, d = self.d, offset = offset, vectors = vectors)
         except:
             raise RtreeLeafReadError()
 
@@ -242,15 +242,15 @@ def rtreeFileHandlerTest():
     pointers = [nBytes+1, nBytes*2 + 1]
 
     # writing
-    compactNode = CompactNode(maxE = nfh.p, d = d, offset = offset, mbr = mbr, pointers = pointers)
-    compactNode.set(mbr, pointers)
-    nfh.writeNode(compactNode)
+    dataNode = MNode(maxE = nfh.p, d = d, offset = offset, mbr = mbr, pointers = pointers)
+    dataNode.set(mbr, pointers)
+    nfh.writeNode(dataNode)
 
     # reading
     returnNode = nfh.readTree(offset)
 
     # comparing results
-    compactNode.printRtree()
+    dataNode.printRtree()
     returnNode.printRtree()
 
     # Leaf write/read testing
@@ -258,24 +258,24 @@ def rtreeFileHandlerTest():
     vectors = [0.23,0.45,0.56,-0.1]
 
     # writing
-    compactLeaf = CompactLeaf(maxE = nfh.v, d = d, offset = offset, vectors = vectors)
-    nfh.writeLeaf(compactLeaf)
+    dataLeaf = MLeaf(maxE = nfh.v, d = d, offset = offset, vectors = vectors)
+    nfh.writeLeaf(dataLeaf)
 
     # reading
     returnLeaf = nfh.readTree(offset)
 
     # comparing results
-    compactLeaf.printRtree()
+    dataLeaf.printRtree()
     returnLeaf.printRtree()
 
     # Testing polymorphic writing
-    nfh.writeTree(compactLeaf)
+    nfh.writeTree(dataLeaf)
     returnLeaf = nfh.readTree(offset)
     returnLeaf.printRtree()
 
-    nfh.addTree(compactLeaf)
+    nfh.addTree(dataLeaf)
     returnLeaf = nfh.readTree(nfh.lastOffset - bBytes)
-    nfh.addTree(compactNode)
+    nfh.addTree(dataNode)
     returnNode = nfh.readTree(nfh.lastOffset - bBytes)
 
     returnLeaf.printRtree()

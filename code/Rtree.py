@@ -2,7 +2,7 @@ from math import log
 import sys
 import struct
 from FileHandler import *
-from CompactRtree import *
+from MRtree import *
 
 NodeBytes = 4096 # Bytes per node
 
@@ -49,7 +49,7 @@ class Rtree(object):
         self.dataFile = "data" + str(d) + "D.bin"  # dataFile:  Data for loading vectors
 
         # Init Rtree
-        root = CompactNode(maxE = self.nfh.p, d = d, offset = 0, mbrLen = self.nfh.r, pointersLen = self.nfh.p)
+        root = MNode(maxE = self.nfh.p, d = d, offset = 0, mbrLen = self.nfh.r, pointersLen = self.nfh.p)
         root.setAsRoot()
         self.currentNode = root
         self.root     = True
@@ -78,15 +78,15 @@ class Rtree(object):
             self.k = self.k + 1
 
             # save previous data to cache
-            self.cache = [self.compactNode] + self.cache
+            self.cache = [self.mNode] + self.cache
 
             # Load Node data from disk
-            compactNode = self.nfh.readTree(pointer)
+            mNode = self.nfh.readTree(pointer)
 
-            self.mbr      = compactNode.getMbr()
-            self.pointers = compactNode.pointers
-            self.elems    = compactNode.getElems()
-            self.root     = compactNode.root
+            self.mbr      = mNode.getMbr()
+            self.pointers = mNode.pointers
+            self.elems    = mNode.getElems()
+            self.root     = mNode.root
         else:
             raise RtreeHeightError()
 
@@ -107,11 +107,11 @@ class Rtree(object):
                 self.splitNode(parent,node,newNode)
                 self.adjustTree()
             else:
-                compactLeaf = self.chooseLeaf(vector)
-                self.nfh.writeTree(compactLeaf)
+                mLeaf = self.chooseLeaf(vector)
+                self.nfh.writeTree(mLeaf)
 
                 currentNode = self.cache[0]
-                currentNode.adjustMbr(compactLeaf)
+                currentNode.adjustMbr(mLeaf)
 
                 self.nfh.writeTree(currentNode)
                 self.adjustTree()
@@ -136,7 +136,7 @@ class Rtree(object):
                 minIncrement = increment
         return minPointer
 
-    def splitNode(self,parent,compactNode, newNode):
+    def splitNode(self,parent,mNode, newNode):
         pass
 
     def adjustTree(self):
@@ -157,10 +157,10 @@ class Rtree(object):
         #             if coords[1] > newMbr[i][1]:
         #                 newMbr[i][1] = coords[1]
 
-        #     compactMbr = []
+        #     mMbr = []
         #     for coords in newMbr:
-        #         compactMbr = compactMbr + coords[0] + coords[1]
-        #     node.mbr = compactMbr
+        #         mMbr = mMbr + coords[0] + coords[1]
+        #     node.mbr = mMbr
         #     self.nfh.writeTree(node)
 
     def rangeQuery(self, q, epsilon, node):
