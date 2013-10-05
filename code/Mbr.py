@@ -12,7 +12,7 @@ class Mbr:
     def __init__(self, d, minV = 0, maxV = 1):
         self.d          = d
         self.coords     = [maxV,minV]*self.d
-        self.dRanges    = self.listToRange(d, self.coords)
+        self.dRanges    = self.listToRange(self.coords)
 
     def toStr(self):
         return str(self.dRanges)
@@ -23,9 +23,9 @@ class Mbr:
     def dump(self):
         return self.coords
 
-    def listToRange(self, d, coords):
+    def listToRange(self, coords):
         dRanges = []
-        for k in range(0, d, 1):
+        for k in range(0, self.d, 1):
             dimensionMin = coords[2*k]
             dimensionMax = coords[2*k+1]
             dRanges = dRanges + [[dimensionMin, dimensionMax]]
@@ -36,7 +36,7 @@ class Mbr:
             raise MbrDataListLengthError()
 
         self.coords  = dataList
-        self.dRanges = self.listToRange(self.d, dataList)
+        self.dRanges = self.listToRange(dataList)
 
     def setPoint(self, dPoint):
         if len(dPoint) != self.d:
@@ -44,7 +44,7 @@ class Mbr:
 
         dup = [[x,x] for x in dPoint]
         self.coords = [val for subl in dup for val in subl]
-        self.dRanges = self.listToRange(self.d, self.coords)
+        self.dRanges = self.listToRange(self.coords)
 
     def checkExpand(self, mbr):
         diffs = {}

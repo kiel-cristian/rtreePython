@@ -58,9 +58,9 @@ class RtreeFileHandler(object):
         floatSize = struct.calcsize("d")
         boolSize  = struct.calcsize("?")
 
-        self.r = int(rBytes/floatSize)  # number of floats to build a d-dimensional mbr
-        self.p = int(pBytes/intSize)    # number of ints pointers of a node
-        self.v = int(vBytes/floatSize)  # number of floats to build a leaf with data
+        self.r = int(rBytes/floatSize)    # number of floats to build a d-dimensional mbr
+        self.p = int(pBytes/intSize)      # number of ints pointers of a node
+        self.v = int(vBytes/floatSize*2)  # number of floats to build a leaf with data
         self.nodeId = True
         self.leafId = False
 
@@ -126,9 +126,9 @@ class RtreeFileHandler(object):
 
     def writeTree(self, data):
         t = type(data)
-        if t == MNode or t == EmptyNode:
+        if t == MNode:
             self.writeNode(data)
-        elif t == MLeaf or t == EmptyLeaf:
+        elif t == MLeaf:
             self.writeLeaf(data)
         else:
             raise RtreeWriteError()
@@ -145,7 +145,7 @@ class RtreeFileHandler(object):
         vectors = dataLeaf.dump()
         idVal = self.leafId
 
-        buf = struct.pack('1b', idVal) + struct.pack('%sd' % self.v,  *vectors)
+        buf = struct.pack('1b', idVal) + struct.pack('%sf' % self.v,  *vectors)
         self.write(buf, dataLeaf.offset)
 
     def isNode(self,offset):
@@ -184,20 +184,20 @@ class RtreeFileHandler(object):
             adjBuf = buf[0:self.lBytes]
             bufLeaf = adjBuf[self.idBytes:self.lBytes]
 
-            vectors = struct.unpack('%sd' % self.v,  bufLeaf)
+            vectors = struct.unpack('%sf' % self.v,  bufLeaf)
             return MLeaf(maxE = self.v, d = self.d, offset = offset, vectorList = vectors)
         except:
             raise RtreeLeafReadError()
 
     def genData(self,dataFile,d,n):
         randVectors = [random.random() for _ in range(n)]
-        buff         = struct.pack('1i',d) + struct.pack('1i',n) + struct.pack('%sd' % len(randVectors), *randVectors)
-        self.write( buff, 0, dataFile)
+        buf         = struct.pack('1i',d) + struct.pack('1i',n) + struct.pack('%sd' % len(randVectors), *randVectors)
+        self.write( buf, 0, dataFile)
 
     def getVectors(self):
         intSize    = struct.calcsize("i")
         doubleSize = struct.calcsize("d")
-        offset      = 0
+        offset     = 0
 
         d       = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
         offset  = offset + intSize
@@ -223,6 +223,26 @@ def ioTest():
     print floatlist
     print floatlist2
     print floatlist[0] == floatlist2[0]
+
+def nfhDataReadTest():
+    # d = 2
+    # blockBytes = 4096
+
+    # nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
+    #                         dataFile        = "rtree" + str(d) + "D.bin",
+    #                         d = d,
+    #                         blockBytes = blockBytes)
+    # Generating data file
+    # for j in range(1,21):
+    #     nfh.genData("data" + str(j) + "D.bin", j, 100000)
+
+    # for j in range(1,21):
+        # dVectors = nfh.getVectors("data" + str(j) + "D.bin")
+        # if j < 10:
+            # space = "  "
+        # else:
+            # space = " "
+        # print str(j) + "D:" + space + str(dVectors)
 
 def rtreeFileHandlerTest():
     d = 2
@@ -272,26 +292,14 @@ def rtreeFileHandlerTest():
     returnLeaf.printRtree()
 
     nfh.addTree(dataLeaf)
-    returnLeaf = nfh.readTree(nfh.lastOffset - bBytes)
+    returnLeaf = nfh.readTree(nfh.lastOffset - blockBytes)
     nfh.addTree(dataNode)
-    returnNode = nfh.readTree(nfh.lastOffset - bBytes)
+    returnNode = nfh.readTree(nfh.lastOffset - blockBytes)
 
     returnLeaf.printRtree()
     returnNode.printRtree()
 
     print nfh.elems
-
-    # Generating data file
-    # for j in range(1,21):
-    #     nfh.genData("data" + str(j) + "D.bin", j, 100000)
-
-    for j in range(1,21):
-        dVectors = nfh.getVectors("data" + str(j) + "D.bin")
-        if j < 10:
-            space = "  "
-        else:
-            space = " "
-        # print str(j) + "D:" + space + str(dVectors)
 
 if __name__=="__main__":
     ioTest()

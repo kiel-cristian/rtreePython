@@ -21,7 +21,7 @@ class MNode(MRtree):
     def __init__(self, maxE, d, offset, mbrList = [], pointers = []):
         super(MNode,  self).__init__(d = d, maxE = maxE, offset = offset)
 
-        self.pointers       = pointers
+        self.pointers       = [p for p in pointers if p != -1]
         self.elems          = len(pointers)
 
         mbr                 = Mbr(d)
@@ -59,9 +59,22 @@ class MNode(MRtree):
 
 class MLeaf(MRtree):
     def __init__(self, maxE, d, offset, vectorList):
-        super(MLeaf,  self).__init__(d = d, maxE = maxE, offset = offset)
+        super(MLeaf,  self).__init__(d = d, maxE = maxE/2, offset = offset)
+        vector = []
+        self.vectors = []
+        k = 0
+        for i in range(len(vectorList)):
+            v = vectorList[i]
+            vector = vector + [v]
+            k = k + 1
 
-        self.vectors = vectorList
+            if k >= d:
+                vector = [v for v in vector if v != -2]
+                if len(vector) == d:
+                    self.vectors = self.vectors + [vector]
+                vector = []
+                k = 0
+
         self.elems   = len(self.vectors)
         self.mbrs    = [Mbr(d) for _ in range(self.elems)]
         self.mbrs    = [self.mbrs[k].setPoint(self.vectors[k]) for k in range(self.elems)]
@@ -77,7 +90,7 @@ class MLeaf(MRtree):
         self.mbrs[self.elems] = self.mbrs[self.elems].setPoint(point)
 
     def dump(self):
-        return [val for subl in self.vectors for val in subl] + [-2 for _ in range(self.elemsM - self.elems)]
+        return [val for subl in self.vectors for val in subl] + 2*[-2 for _ in range(self.elemsM - self.elems)]
 
     def printRtree(self):
         print "Leaf:"
@@ -101,7 +114,7 @@ class MLeaf(MRtree):
 
 if __name__=="__main__":
     node = MNode(maxE = 20, d = 2, offset = 10,  mbrList = [0.1, 0.1, 0.2, 0.2],  pointers = [1, 500, 1000])
-    leaf = MLeaf(maxE = 8, d = 2, offset = 10, vectorList = [[1.0,2.5]])
+    leaf = MLeaf(maxE = 8, d = 2, offset = 10, vectorList = [1.0,2.5])
 
     node.printRtree()
     print "dumpMbr\t\t\t[" + str(len(node.dumpMbr())) + "]: " + str(node.dumpMbr())
