@@ -1,0 +1,191 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[11pt,titlepage]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+\usepackage[spanish]{babel}
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+\geometry{margin=1in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{
+	\vspace{2cm}
+	\textbf{
+		\huge{
+			Informe de pŕactica II\\
+			CC5901\\}
+	}
+	\vspace{0.5cm}
+	Acid Ltda.\\
+	\large{
+		Sociedad de desarrollo y comercialización de productos informáticos}
+	\vspace{4cm}
+}
+
+\author{
+	\textbf{Alumno}: {\hfill Cristián Felipe Carreño Medina}\\
+	\textbf{RUT}: {\hfill 17.169.081-1}\\
+	\textbf{Carrera}: \hfill Ingeniería Civil\\
+	\textbf{Especialidad}: \hfill Computacióni\\
+	\textbf{Dirección Electrónica}: \hfill crcarren@gmail.com\\
+	\textbf{Teléfono}: \hfill 78465362\\
+}
+
+\date{\today
+	 \vspace{1.0cm}} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+
+\begin{minipage}{15cm}
+	\includegraphics[width=0.5\textwidth]{dcc.png}
+	\maketitle
+\end{minipage}
+
+\textbf{
+		\huge{Certificado de la Empresa}
+	}
+\clearpage
+
+\textbf{
+		\huge{Observaciones}
+	}
+\clearpage
+
+\tableofcontents
+
+\renewcommand{\baselinestretch}{2}  % double space!
+
+
+% La evaluación de una práctica profesional se realiza exclusivamente a través del informe que de ella hace el alumno. Por ello, parte importante de la calificación obtenida depende de la calidad de este documento. Esta no sólo se mide desde el punto de vista técnico, sino también evalúa presentación, redacción y ortografía.
+
+%Hay dos criterios fundamentales a tener en cuenta en un informe:
+	%Debe reflejar adecuadamente el trabajo realizado por el alumno (aún si no llegó a resultados finales).
+	%Debe poder ser leído y comprendido por una persona con conocimientos de Computación, pero sin conocimientos sobre el lugar de trabajo ni los sistemas empleados por el alumno.
+
+% La siguiente es la estructura recomendada para elaborar un Informe de Prácticas Profesionales, aunque según el trabajo realizado puede haber puntos de esta estructura que no sean necesarios de considerar.
+ 
+% 1. En la tapa de la carpeta del Informe se escribe en forma destacada, y con los espacios suficientes asegurando una buena presentación, los títulos siguientes:
+% 1.1 "Informe de Práctica Profesional"
+% 1.2 Código de la Práctica Profesional.
+% 1.3 Nombre de la industria, empresa o institución en que se realizó la práctica.
+% 1.4 Nombre del alumno, carrera y especialidad.
+% 1.5 Número de Rut  del alumno.
+% 1.6 dirección electrónica del alumno
+% 1.7 Teléfono del alumno
+ 
+% 2. Evaluación de la Empresa. Debe adjuntarlo como primera página del Informe, según el formulario de evaluación. En él se debe incluir el nombre del alumno, empresa, nombre y firma del supervisor y las fechas entre las cuales el alumno realizó la práctica. En este certificado se debe además incluir una evaluación acerca del desempeño del alumno que considere los siguientes factores:
+ 
+% (a) Satisfacción con el trabajo realizado
+% (b) Calidad técnica
+% (c) Iniciativa e interés
+% (d) Responsabilidad
+% (e) Trato personal y capacidad de adaptación
+% (f) Evaluación del Informe de Práctica Escrito
+ 
+% 3. Sumario. Índice de títulos y subtítulos con la indicación de la página correspondiente (1 página).
+ 
+% 4. Resumen. En él deben enunciarse las cuestiones esenciales estudiadas y las conclusiones importantes logradas (1 página).
+ 
+% Si falta alguno de los puntos del 1 al 4, el Informe inmediatamente se devuelve al alumno con el fin de que lo complete.
+ 
+% A continuación deben incluirse los capítulos del Informe.
+ 
+% 5. Introducción. Este primer capítulo contiene el propósito y alcance del trabajo y la situación previa de ser necesario. Se recomienda la siguiente estructura para la Introducción (2 páginas).
+ 
+% 5.1 Breve descripción del lugar de trabajo (1 página).
+% 5.2 Breve descripción del grupo de trabajo (1 página).
+% 5.3 Descripción de equipos y software relevantes. Tanto los relacionados con el trabajo mismo como los que sean de propiedad de la empresa. (2 páginas)
+ 
+% Los puntos 5, 5.1 a 5.3, deben ir en todo Informe de Práctica Profesional, en caso de no existir será castigado en la nota final.
+ 
+% 5.4 Situación previa. Si el trabajo consistió en agregar o modificar componentes de sistemas existentes, el Informe debe incluir una sección que describa los sistemas anteriores al comienzo del trabajo. La descripción debe ser breve y sólo incluir los aspectos relevantes para la comprensión del resto del Informe.
+% 5.5 Descripción general del trabajo realizado.
+ 
+% 6. Trabajo realizado. En este punto es fundamental diferenciar el trabajo realizado por el alumno de la labor hecha por otros miembros del grupo de trabajo. El énfasis debe estar en el trabajo del alumno; otros aspectos pueden ser mencionados sólo si son imprescindibles para la comprensión del Informe. Este punto puede estar subdividido de la siguiente manera:
+ 
+% 6.1 Descripción y justificación del diseño (de haberlo).
+% 6.2 Descripción general de programas y archivos.
+% 6.3 Debe describirse la funcionalidad de cada programa y el contenido de cada archivo sin entrar en detalles, pero dejando claras las interrelaciones entre las diversas componentes del sistema.
+% 6.4 Descripción del sistema desde el punto de vista del usuario.
+ 
+% Los puntos 6.1; 6.2 y 6.3 podrían ser capítulos del Informe (no necesariamente los tres). Y sus títulos deben describir el tema que contienen.
+ 
+% 7. Conclusiones. Presentación de la experiencia ganada, problemas encontrados y los métodos empleados para resolverlos. Aquí puede comentarse sobre el desarrollo futuro del proyecto en el que se trabajó.
+ 
+% 8. Apéndices. Si es necesario para la mejor documentación del trabajo, pueden incluirse apéndices con descripciones detalladas de archivos, listados de programas, ejemplos de resultados, etc. Debe tomarse en cuenta que la calificación depende sobre todo del cuerpo del Informe, y no del grosor de los apéndices. No se exigen todos los listados sino al menos uno para revisar los conocimientos adquiridos por el alumno.
+
+\section{Resumen}
+\section{Introducción}
+	\subsection{Descripción del lugar de trabajo}
+	\subsection{Descripción del grupo de trabajo}
+	\subsection{Descripción de equipos y software relevantes}
+	\subsection{Situación Previa}
+	\subsection{Descripción general del trabajo realizado}
+\section{Trabajo realizado}
+	\subsection{Descripción y justificación del diseño}
+	\subsection{Descripción general de programas y archivos}
+	\subsection{Funcionamiento e interrelaciones}
+		\subsubsection{Menú principal de la aplicación}
+		\subsubsection{Clases empleadas para funcionalidades transversales de la aplicación}
+		\subsubsection{Método global de la aplicación}
+		\subsubsection{Funcionalidades relacionadas a la inicialización de variables y estructuras}
+		\subsubsection{Funcionalidades relacionadas al despliegue de vistas}
+		\subsubsection{Funciones utilizadas por varias vistas}
+		\subsubsection{Complicaciones adicionales al desarrollo}
+	\subsection{Descripción del sistema desde el punto de vista del usuario}
+\section{Conclusiones}
+\section{Apéndices}
+
+%\begin{thebibliography}{9}
+%  Oli
+%\end{thebibliography}
+
+\end{document}
