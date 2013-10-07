@@ -225,8 +225,8 @@ def ioTest():
     print floatlist[0] == floatlist2[0]
 
 def nfhDataReadTest():
-    # d = 2
-    # blockBytes = 4096
+    d = 2
+    blockBytes = 4096
 
     # nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
     #                         dataFile        = "rtree" + str(d) + "D.bin",

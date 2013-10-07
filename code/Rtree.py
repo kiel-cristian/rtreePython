@@ -76,7 +76,7 @@ class Rtree(object):
             raise RtreeHeightError()
 
     def insert(self, vector):
-        checkPointer = self.pointers[0]
+        checkPointer = self.currentNode.pointers[0]
 
         if self.isNode(checkPointer):
             p = self.chooseTree(vector)
