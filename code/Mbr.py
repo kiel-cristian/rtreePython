@@ -1,3 +1,5 @@
+from math import sqrt
+
 class MbrError(Exception):
     def __init__(self):
         self.value = "mbr error"
@@ -14,14 +16,27 @@ class Mbr:
         self.coords     = [maxV,minV]*self.d
         self.dRanges    = self.listToRange(self.coords)
 
-    def toStr(self):
-        return str(self.dRanges)
+    def getMin(self, dimension):
+        return self.dRanges[dimension][0]
 
-    def len(self):
-        return self.d*2
+    def setMin(self, dimension, newMin):
+        self.dRanges[dimension][0] = newMin
+        self.coords[2*dimension]   = newMin
 
-    def dump(self):
-        return self.coords
+    def getMax(self, dimension):
+        return self.dRanges[dimension][1]
+
+    def setMax(self, dimension, newMax):
+        self.dRanges[dimension][1] = newMax
+        self.coords[2*dimension+1] = newMax
+
+    # Calcula la distancia a otro mbr usando rangos inferiores en cada dimension
+    # mbr : Otro mbr
+    def distanceTo(self, mbr):
+        distance = 0
+        for i in range(self.d):
+            distance = distance + (mbr.getMin(i) - self.getMin(i))**2
+        return sqrt(distance)
 
     def listToRange(self, coords):
         dRanges = []
@@ -30,6 +45,18 @@ class Mbr:
             dimensionMax = coords[2*k+1]
             dRanges = dRanges + [[dimensionMin, dimensionMax]]
         return dRanges
+
+    def equals(self, mbr):
+        return false
+
+    def toStr(self):
+        return str(self.dRanges)
+
+    def len(self):
+        return self.d*2
+
+    def dump(self):
+        return self.coords
 
     def setRange(self, dataList):
         if len(dataList) != self.len():
@@ -46,39 +73,39 @@ class Mbr:
         self.coords = [val for subl in dup for val in subl]
         self.dRanges = self.listToRange(self.coords)
 
+    def deadSpace(self, mbr):
+        pass
+
     def checkExpand(self, mbr):
-        diffs = {}
-        for i in range(self.d):
-            r = self.dRanges[i]
-            dMin = r[0]
-            dMax = r[1]
-
-            if mbr.dRanges[i][0] < dMin:
-                diffs[i] = dMin - mbr.dRanges[i][0]
-            elif mbr.dRanges[i][1] > dMax:
-                diffs[i] = dMax - mbr.dRanges[i][1]
-
         a = 1
-        for k in diffs:
-            a = a*k
+        diff = 0
+        for i in range(self.d):
+            dMin = self.getMin(i)
+            dMax = self.getMax(i)
 
-        if a > 1:
-            return a
+            if mbr.getMin(i) < dMin:
+                diff = dMin - mbr.getMin(i)
+
+            if mbr.getMax(i) > dMax:
+                diff =  diff + (dMax - mbr.getMax(i))
+
+            a = a*diff
+
+        if a > 0 or not self.equals(mbr):
+            return [True,a]
         else:
-            return 0
+            return [False,0]
 
     def expand(self, mbr):
         for i in range(self.d):
-            r = self.dRanges[i]
-            dMin = r[0]
-            dMax = r[1]
+            dMin = self.getMin(i)
+            dMax = self.getMax(i)
 
-            if mbr.dRanges[i][0] < dMin:
-                diffs[i] = dMin - mbr.dRanges[i][0]
-                self.coords[2*i] = mbr.coords[2*i]
-            elif mbr.dRanges[i][1] > dMax:
-                self.dRanges[i][1] = mbr.dRanges[i][1]
-                self.coords[2*i+1] = mbr.coords[2*i+1]
+            if mbr.getMin(i) < dMin:
+                self.setMin(i, mbr.getMin(i))
+                
+            elif mbr.getMax(i) > dMax:
+                self.setMax(i, mbr.getMax(i))
 
 if __name__=="__main__":
     m = Mbr(2)
@@ -99,3 +126,8 @@ if __name__=="__main__":
         raise "Error on dRanges"
     if not m.coords == [0.2, 0.2, 0.7, 0.7]:
         raise "Error on coords"
+
+
+    m2 = Mbr(2)
+    m2.setPoint([0.3,0.7])
+    print str(m.checkExpand(m2))
