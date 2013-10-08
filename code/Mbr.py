@@ -47,7 +47,7 @@ class Mbr:
         return dRanges
 
     def equals(self, mbr):
-        return false
+        return False
 
     def toStr(self):
         return str(self.dRanges)
@@ -64,6 +64,7 @@ class Mbr:
 
         self.coords  = dataList
         self.dRanges = self.listToRange(dataList)
+        return self
 
     def setPoint(self, dPoint):
         if len(dPoint) != self.d:
@@ -72,6 +73,7 @@ class Mbr:
         dup = [[x,x] for x in dPoint]
         self.coords = [val for subl in dup for val in subl]
         self.dRanges = self.listToRange(self.coords)
+        return self
 
     def deadSpace(self, mbr):
         pass
@@ -130,15 +132,15 @@ if __name__=="__main__":
 
     m2 = Mbr(2)
     m2.setPoint([0.3,0.7])
-    print str(m.checkExpand(m2))
+    print(m.checkExpand(m2))
 
     m.setPoint([0.3,0.7])
-    print m.distanceTo(m2) == 0
-    print m2.distanceTo(m) == 0
+    print(m.distanceTo(m2) == 0)
+    print(m2.distanceTo(m) == 0)
 
     m.setPoint([0.4,0.7])
-    print m.distanceTo(m2)
+    print(m.distanceTo(m2))
 
     m.setPoint([0.3,1.4])
-    print m.distanceTo(m2)
+    print(m.distanceTo(m2))
 
