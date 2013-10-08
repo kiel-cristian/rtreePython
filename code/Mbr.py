@@ -131,3 +131,14 @@ if __name__=="__main__":
     m2 = Mbr(2)
     m2.setPoint([0.3,0.7])
     print str(m.checkExpand(m2))
+
+    m.setPoint([0.3,0.7])
+    print m.distanceTo(m2) == 0
+    print m2.distanceTo(m) == 0
+
+    m.setPoint([0.4,0.7])
+    print m.distanceTo(m2)
+
+    m.setPoint([0.3,1.4])
+    print m.distanceTo(m2)
+
