@@ -1,9 +1,16 @@
 from Mbr import *
+class MRtreeLoadError(Exception):
+    def __init__(self):
+        self.value = "Mbr length must match with pointers length"
+    def __str__(self):
+        return repr(self.value)
 
 class MbrPointer():
-  def __init__(self, mbr, pointer):
-    self.mbr     = mbr
-    self.pointer = pointer
+    def __init__(self, mbr, pointer):
+        self.mbr     = mbr
+        self.pointer = pointer
+    def __str__(self):
+        return "{mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
 
 # COMPACTED OBJECTS
 class MRtree(object):
@@ -13,29 +20,33 @@ class MRtree(object):
         self.offset = offset
         self.root = False
 
+        self.mbrs           = [m for m in mbrs if m != -2.0]
         self.pointers       = [p for p in pointers if p != -1]
-        self.elems          = len(pointers)
+
+        self.elems          = len(self.pointers)
         self.mbr            = Mbr(d)
-        self.mbrs           = [m for m in mbrs if m != -2]
         
         childMbrsList = self.mbrs[:]
         groupedList   = listToRanges(d, len(childMbrsList), childMbrsList)
         childMbrs     = [Mbr(d).setRange(g) for g in groupedList]
 
+        if self.elems != len(groupedList):
+            raise MRtreeLoadError()
+
         # Se calcula el mbr del Nodo actual, en base a los mbrs de los hijos
         for m in childMbrs:
             self.mbr.expand(m)
 
-        # tuplas de (mbr, punteros) hijos
+        # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
     # Recibe un mbrPointer, y actualizo las estructuras internas
     def insert(self, mbrPointer):
-        self.pointers[self.elems] = mbrPointer.pointer
+        self.pointers = self.pointers + [mbrPointer.pointer]
         self.elems = self.elems + 1
         self.mbr.expand(mbrPointer.mbr)
         self.mbrs  = self.mbrs + mbrPointer.mbr.dump()
-        self.mbrsPointers = self.mbrsPointers + [mbrPointer]
+        self.mbrPointers = self.mbrPointers + [mbrPointer]
 
     def dumpMbrs(self):
         return self.mbrs     + [-2.0 for _ in range((self.M - self.elems )*2*self.d)]
@@ -53,6 +64,7 @@ class MRtree(object):
         print "\tmbr[" + str(self.mbr.len()) + "]: " + self.mbr.toStr()
         print "\tmbrs[" + str(len(self.mbrs)) + "]: " + str(self.mbrs)
         print "\tpointers[" + str(len(self.pointers)) + "]: " + str(self.pointers)
+        print "\tMbrPointers[" + str(len(self.mbrPointers)) + "]: " + str([str(_) for _ in self.mbrPointers])
 
     def isANode(self):
         pass
@@ -89,8 +101,8 @@ class MLeaf(MRtree):
         return True
 
 if __name__=="__main__":
-    node = MNode(M = 20, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*4,  pointers = [500, 100, 50])
-    leaf = MLeaf(M = 8, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*4, pointers = [100, 200, 300])
+    node = MNode(M = 20, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3,  pointers = [500, 100, 50])
+    leaf = MLeaf(M = 8, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3, pointers = [100, 200, 300])
 
     node.printRtree()
     print "dumpMbr\t\t\t[" + str(len(node.dumpMbrs())) + "]: " + str(node.dumpMbrs())
@@ -100,7 +112,7 @@ if __name__=="__main__":
     print "dumpMbr\t\t\t[" + str(len(leaf.dumpMbrs())) + "]: " + str(leaf.dumpMbrs())
     print "dumpPointer\t[" + str(len(leaf.dumpPointers())) + "]: " + str(leaf.dumpPointers())
 
-    node2 = MNode(M = 1, d = 2, offset = 10,  mbrs = [0.1, 0.1, 0.2, 0.2],  pointers = [])
+    node2 = MNode(M = 1, d = 2, offset = 10,  mbrs = [0.1, 0.1, 0.2, 0.2],  pointers = [1])
     node2.printRtree()
     print "dumpMbr\t\t\t[" + str(len(node2.dumpMbrs())) + "]: " + str(node2.dumpMbrs())
     print "dumpPointer\t[" + str(len(node2.dumpPointers())) + "]: " + str(node2.dumpPointers())

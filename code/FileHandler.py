@@ -1,3 +1,4 @@
+# encoding: utf-8
 import io
 import sys
 from MRtree import *
@@ -12,11 +13,8 @@ class FileHandlerError(Exception):
         return repr(self.value)
 
 class RtreeReadError(FileHandlerError):
-    pass
-class RtreeNodeReadError(FileHandlerError):
-    pass
-class RtreeLeafReadError(FileHandlerError):
-    pass
+    def __init__(self):
+        self.value = "Error reading tree on disc, invalid offset or invalid data on file"
 class RtreeWriteError(FileHandlerError):
     def __init__(self):
         self.value = "writing error, can't get type, expecting MRtree."
@@ -41,24 +39,23 @@ class RtreeFileHandler(object):
         intSize     = struct.calcsize("i")
         booleanSize = struct.calcsize("?")
 
-        # bytes de un boolean
-        idBytes     = booleanSize
-        # bytes de un mbr
-        mbrBytes    = 2*d*floatSize
-        # bytes de todas las tuplas (mbr, puntero)
-        tuplesBytes = M*(1 + mbrBytes + struct.calcsize("i"))
+        self.mbrFloats   = 2*d*M # cantidad de flotantes para representar los mbrs
+        self.pointerInts = M     # cantidad de enteros como punteros
 
-        self.tuplesBytes = tuplesBytes
-        self.idBytes     = idBytes
-        self.mbrBytes    = mbrBytes
-        self.nodeBytes   = tuplesBytes + idBytes
+        self.idBytes     = booleanSize                  # bytes de un id booleano
+        self.mbrBytes    = self.mbrFloats*floatSize     # bytes de los mbrs
+        self.pBytes      = self.pointerInts*intSize     # bytes de los punteros
+        self.nodeBytes   = self.idBytes + self.mbrBytes + self.pBytes # tamaño total del nodo en bytes
+
+        # En disco, el nodo se guarda de la siguiente manera:
+        # ID MBR MBR MBR PUNTERO PUNTERO PUNTERO
 
         self.nodeId = True
         self.leafId = False
 
-        self.elems  = []
-        self.availableOffsets = []
-        self.lastOffset = 0
+        self.elems  = []           # offsets de elementos en el arbol
+        self.availableOffsets = [] # offsets disponibles para reocupar
+        self.lastOffset = 0        # ultimo offset del archivo donde es posible escribir mas nodos
 
         # Creating Rtree file
         f = io.open(self.dataFile,'w+b')
@@ -69,7 +66,8 @@ class RtreeFileHandler(object):
         print "M:" + str(self.M)
         print "m:" + str(self.m)
         print "Id Bytes: " + str(self.idBytes)
-        print "Tuples Bytes :" + str(self.tuplesBytes)
+        print "Mbr Bytes :" + str(self.mbrBytes)
+        print "Pointer Bytes :" + str(self.pBytes)
 
     def write(self, buf, offset, dataFile = None):
         if dataFile == None:
@@ -96,14 +94,15 @@ class RtreeFileHandler(object):
 
     def deleteTree(self, data):
         if type(data) == EmptyNode:
-            self.writeNode(data)
+            self.writeTree(data)
             self.availableOffsets = self.availableOffsets + data.offset
         elif type(data) == EmptyLeaf:
-            self.writeLeaf(data)
+            self.writeTree(data)
             self.availableOffsets = self.availableOffsets + data.offset
         else:
             raise RtreeDeleteError()
 
+    # Añade un nodo al final del archivo o dentro de un espacio disponible
     def addTree(self,data):
         if len(self.availableOffsets) > 0:
             data.offset = self.availableOffsets[0]
@@ -113,39 +112,17 @@ class RtreeFileHandler(object):
         self.writeTree(data)
         self.lastOffset = self.lastOffset + self.nodeBytes
 
-    def writeTree(self, data):
-        t = type(data)
-        if t == MNode:
-            self.writeNode(data)
-        elif t == MLeaf:
-            self.writeLeaf(data)
+    def writeTree(self, MRtree):
+        t = type(MRtree)
+        if t == MNode or t == MLeaf:
+            mbrs     = MRtree.dumpMbrs()
+            pointers = MRtree.dumpPointers()
+            idVal    = self.nodeId
+
+            buf = struct.pack('1b', idVal) + struct.pack('%sf' % self.mbrFloats, *mbrs) + struct.pack('%si' % self.pointerInts,  *pointers)
+            self.write(buf, MRtree.offset)
         else:
             raise RtreeWriteError()
-
-    def writeNode(self, dataNode):
-        mbrs     = dataNode.dumpMbrs()
-        pointers = dataNode.dumpPointers()
-        idVal    = self.nodeId
-
-
-        print mbrs
-        print len(mbrs)
-        print pointers
-        print len(pointers)
-        print idVal
-
-        print struct.pack('%sd' % (self.M + 1)*self.d*2, *mbrs) 
-
-        buf = struct.pack('1b', idVal) + struct.pack('%sd' % (self.M + 1)*self.d*2, *mbrs) + struct.pack('%si' % self.M,  *pointers)
-        self.write(buf, dataNode.offset)
-
-    def writeLeaf(self, dataLeaf):
-        mbrs     = dataLeaf.dumpMbrs()
-        pointers = dataLeaf.dumpPointers()
-        idVal    = self.leafId
-
-        buf = struct.pack('1b', idVal) + struct.pack('%sd' % (self.M + 1)*self.d*2, *mbrs) + struct.pack('%si' % self.M,  *pointers)
-        self.write(buf, dataLeaf.offset)
 
     def isNode(self,offset):
         if offset < 0:
@@ -156,39 +133,23 @@ class RtreeFileHandler(object):
             return False
 
     def readTree(self, offset):
-        buf = self.read(self.nodeBytes, offset)
-        bufId = buf[0:self.idBytes]
-        check = (struct.unpack('1b', bufId))[0]
+        try:
+            buf = self.read(self.nodeBytes, offset)
 
-        if check == self.nodeId:
-            return self.readNode(offset, buf)
-        elif check == self.leafId:
-            return self.readLeaf(offset, buf)
-        else:
+            bufId = buf[0:self.idBytes]
+            bufMbrs     = buf[self.idBytes : self.mbrBytes+1]
+            bufPointers = buf[self.mbrBytes+1 : ]
+
+            check     = (struct.unpack('1b', bufId))[0]
+            mbrs      = struct.unpack('%sf' % self.mbrFloats, bufMbrs)
+            pointers  = struct.unpack('%si' % self.pointerInts, bufPointers)
+        except:
             raise RtreeReadError()
 
-    def readNode(self, offset, buf):
-        try:
-            buf1 = buf[self.idBytes : self.mbrBytes + self.tuplesBytes+1]
-            buf2 = buf[self.mbrBytes + self.tuplesBytes + 1 : self.nodeBytes]
-
-            mbrs      = struct.unpack('%sd' % (self.M + 1)*self.d*2,  buf1)
-            pointers  = struct.unpack('%si' % self.M,  buf2)
-
-            return MNode(maxE = self.p, d = self.d, offset = offset, mbrs = mbr, pointers = pointers)
-        except:
-            raise RtreeNodeReadError()
-
-    def readLeaf(self, offset, buf):
-        try:
-            buf1 = buf[self.idBytes : self.mbrBytes + self.tuplesBytes+1]
-            buf2 = buf[self.mbrBytes + self.tuplesBytes + 1 : self.nodeBytes]
-
-            mbrs      = struct.unpack('%sd' % (self.M + 1)*self.d*2,  buf1)
-            pointers  = struct.unpack('%si' % self.M,  buf2)
-            return MLeaf(maxE = self.v, d = self.d, offset = offset, mbrs = mbr, pointers = vectors)
-        except:
-            raise RtreeLeafReadError()
+        if check == self.nodeId:
+            return MNode(M = self.M, d = self.d, offset = offset, mbrs = mbrs, pointers = pointers)
+        elif check == self.leafId:
+            return MLeaf(M = self.M, d = self.d, offset = offset, mbrs = mbrs, pointers = pointers)
 
     def genData(self,dataFile,d,n):
         randVectors = [random.random() for _ in range(n)]
@@ -258,12 +219,12 @@ def rtreeFileHandlerTest():
     # Node write/read testing
     offset = 0
     mbrs = [0.5,0.6,0.1,0.15]*2
-    pointers = [_ for _ in range(1)]
+    pointers = [_ for _ in range(len(mbrs)/2/d)]
 
     # writing
     dataNode = MNode(M = nfh.M, d = nfh.d, offset = offset, mbrs = mbrs, pointers = pointers)
     # dataNode.printRtree()
-    nfh.writeNode(dataNode)
+    nfh.writeTree(dataNode)
 
     # reading
     returnNode = nfh.readTree(offset)
@@ -276,8 +237,8 @@ def rtreeFileHandlerTest():
     offset = nfh.lastOffset
 
     # writing
-    dataLeaf = MLeaf(M = nfh.v, d = d, offset = offset, mbrs = mbrs, pointers = pointers)
-    nfh.writeLeaf(dataLeaf)
+    dataLeaf = MLeaf(M = nfh.M, d = d, offset = offset, mbrs = mbrs, pointers = pointers)
+    nfh.writeTree(dataLeaf)
 
     # reading
     returnLeaf = nfh.readTree(offset)

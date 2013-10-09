@@ -16,6 +16,9 @@ class Mbr:
         self.coords     = [maxV,minV]*self.d
         self.dRanges    = self.listToRange(self.coords)
 
+    def __str__(self):
+        return str(self.dRanges)
+
     def getMin(self, dimension):
         return self.dRanges[dimension][0]
 
