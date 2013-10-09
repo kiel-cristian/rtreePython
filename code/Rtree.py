@@ -3,6 +3,7 @@ import sys
 import struct
 from FileHandler import *
 from MRtree import *
+from PartitionAlgorithm import *
 
 #  ERRORS
 class RtreeHeightError(Exception):
@@ -17,12 +18,17 @@ class Rtree(object):
     # maxE       : cantidad maxima de elementos que almacenara el Rtree
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
-    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0):
+    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
         self.nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
                                 dataFile        = "rtree" + str(d) + "D.bin",
                                 d               = d,
                                 M               = M,
                                 initOffset      = initOffset)
+
+        if partitionType == 0:
+            self.pa = LinealPartition()
+        elif partitionType == 1:
+            self.pa = CuadraticPartition()
 
         self.cache = []                             # cache: lista de nodos visitados
         self.k = 0                                  # k: nodos en cache
@@ -69,7 +75,7 @@ class Rtree(object):
         return self.nfh.d
 
     def needToSplit(self):
-        return self.elems + 1 > self.M
+        return self.currentNode.needsToSplit()
 
     def isNode(self, p):
         return self.nfh.isNode(p)
@@ -80,106 +86,37 @@ class Rtree(object):
     def newNode(self):
         return MNode(M = self.M(), d = self.d())
 
+    # Busqueda radial de objeto
+    def search(self, r, mbrObject):
+        pass
+
+    def insert(self, mbrPointer):
+        # Bajo por el arbol hasta encontrar una hoja adecuada
+        while self.currentNode.isNode():
+            self.chooseNode(mbr)
+
+        if self.needToSplit():
+            nodeMbr      = self.currentNode.getMbr()
+            childrenMbrs = self.currentNode.getChildrenMbrs()
+
+            results = self.pa.partition()
+
+    # AUXILIARES: SUJETAS A MODIFICACION
+
+    # Insert masivo leyendo datos de archivos, deberia servir para experimentos
     def loadRtreeData(self):
-        vectors = self.nfh.getVectors()
-        for v in vectors:
-            self.insert(v)
+        pass
 
+    # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, pointer):
-        if self.k < self.maxK:
-            # Can load another node to cache
-            self.k = self.k + 1
-
-            # save previous data to cache
-            self.cache = [self.mNode] + self.cache
-
-            # Load Node data from disk
-            mNode = self.nfh.readTree(pointer)
-
-            self.mbr      = mNode.getMbr()
-            self.pointers = mNode.pointers
-            self.elems    = mNode.getElems()
-            self.root     = mNode.root
-        else:
-            raise RtreeHeightError()
-
-    def insert(self, vector):
-        checkPointer = self.currentNode.pointers[0]
-
-        if self.isNode(checkPointer):
-            p = self.chooseTree(vector)
-            self.seekNode(p)
-            self.insert(vector)
-
-        else:
-            if self.needToSplit:
-                node = self.cache[0]
-                newNode = EmptyNode()
-                parent = self.cache[1]
-
-                self.splitNode(parent,node,newNode)
-                self.adjustTree()
-            else:
-                mLeaf = self.chooseLeaf(vector)
-                self.nfh.writeTree(mLeaf)
-
-                currentNode = self.cache[0]
-                currentNode.adjustMbr(mLeaf)
-
-                self.nfh.writeTree(currentNode)
-                self.adjustTree()
-                return
-
-    def chooseLeaf(self,vector):
-        l = self.chooseTree(vector)
-        if l == -1:
-            return EmptyLeaf()
-        else:
-            return self.readTree(l)
-
-    def chooseTree(self, vector):
-        minPointer = self.pointers[0]
-        minIncrement = 0
-
-        for p in self.pointers:
-            leafMbr = self.nfh.getMbr(p)
-            increment = self.getIncrement(leafMbr, vector)
-            if increment < minIncrement:
-                minPointer = p
-                minIncrement = increment
-        return minPointer
-
-    def splitNode(self,parent,mNode, newNode):
         pass
 
-    def adjustTree(self):
-        for i in range(0,self.cache-1):
-            modifiedNode = self.cache[i]
-            needToModify = self.cache[i+1]
-            needToModify.adjustMbr(modifiedNode)
-            self.nfh.writeTree(needToModify)
-
-        # for node in self.cache:
-        #     newMbr = [[0.0,0.0] for _ in range(self.d)]
-        #     for p in node.pointers:
-        #         childMbr = self.nfh.getMbr(p)
-        #         for i in range(0,self.d):
-        #             coords = childMbr[i]
-        #             if coords[0] < newMbr[i][0]:
-        #                 newMbr[i][0] = coords[0]
-        #             if coords[1] > newMbr[i][1]:
-        #                 newMbr[i][1] = coords[1]
-
-        #     mMbr = []
-        #     for coords in newMbr:
-        #         mMbr = mMbr + coords[0] + coords[1]
-        #     node.mbr = mMbr
-        #     self.nfh.writeTree(node)
-
-    def rangeQuery(self, q, epsilon, node):
+    # Escoge un nodo u hoja para insertar
+    def chooseTree(self, mbrPointer):
         pass
 
-    def minDist(self, q, region):
+    # Maneja split
+    def splitNode(self):
         pass
 
 if __name__=="__main__":

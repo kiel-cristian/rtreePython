@@ -1,7 +1,15 @@
+# encoding: utf-8
 from Mbr import *
+
 class MRtreeLoadError(Exception):
     def __init__(self):
         self.value = "Mbr length must match with pointers length"
+    def __str__(self):
+        return repr(self.value)
+
+class MRtreeAddChildError(Exception):
+    def __init__(self):
+        self.value = "Cannot add another child to Tree"
     def __str__(self):
         return repr(self.value)
 
@@ -37,13 +45,14 @@ class MRtree(object):
         for m in childMbrs:
             self.mbr.expand(m)
 
+        # Mbrs
+        self.childMbrs = childMbrs
+
         # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
-    # Recibe un Arbol (Nodo u Hoja), y actualizo las estructuras internas del nodo actual
-    def insert(self, tree):
-        mbrPointer = tree.getMbrPointer()
-
+    # Añade un hijo al arbol actual (Una tupla (mbr, pointer))
+    def insert(self, mbrPointer):
         self.pointers = self.pointers + [mbrPointer.pointer]
         self.elems = self.elems + 1
         self.mbr.expand(mbrPointer.mbr)
@@ -51,8 +60,14 @@ class MRtree(object):
         self.mbrPointers = self.mbrPointers + [mbrPointer]
 
     # Esta estructura se ocupa para algoritmos del Rtree
-    def getChilds(self):
+    def getChildren(self):
         return self.mbrPointers
+
+    def getChildrenMbrs(self):
+        return self.childMbrs
+
+    def getMbr(self):
+        return self.mbr
 
     # Esta estructura se ocupa para insertar una version compacta del Nodo a otro Nodo u Hoja
     def getMbrPointer(self):
@@ -90,6 +105,12 @@ class MNode(MRtree):
     def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
+    # Recibe un Arbol (Nodo u Hoja), y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
+    def insert(self, tree):
+        if self.elems == self.M:
+            raise MRtreeInsertError()
+        super(MNode, self).insert(tree.getMbrPointer())
+
     def printRtree(self):
         print "Node:"
         super(MNode, self).printRtree()
@@ -103,6 +124,12 @@ class MNode(MRtree):
 class MLeaf(MRtree):
     def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MLeaf,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
+
+    def insert(self, mbrPointer):
+        if self.elems == self.M:
+            raise MRtreeAddChildError()
+
+        super(MLeaf, self).insert(mbrPointer)
 
     def printRtree(self):
         print "Leaf:"
