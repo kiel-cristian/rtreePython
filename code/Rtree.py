@@ -41,6 +41,10 @@ class Rtree(object):
         self.meanInternalNodes = 0
         self.meanSearchTime = None:
         self.searchCount = 0
+        
+    def getMeanNodePartitions(self):
+      ##TODO
+      pass
 
     # Minimun node entries
     def m(self):
