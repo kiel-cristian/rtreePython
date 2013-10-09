@@ -119,21 +119,21 @@ def testPartition(partition, parent, mList):
   seeds = [None, None]
   seeds[0] = mList[seedsIndex[0]]
   seeds[1] = mList[seedsIndex[1]]
-  print([_.dRanges for _ in seeds])
-  print([_.dRanges for _ in restMbr])
+  print([str(_) for _ in seeds])
+  print([str(_) for _ in restMbr])
   partitions = partition.partitionFromSeeds(seeds, restMbr)
-  print([_.dRanges for _ in partitions[0]])
-  print([_.dRanges for _ in partitions[1]])
+  print([str(_) for _ in partitions[0]])
+  print([str(_) for _ in partitions[1]])
   
 if __name__ == "__main__":
   parent = Mbr(2)
   parent.setPoint([0, 1])
   mList = [Mbr(2).setPoint([0, 0.6]), Mbr(2).setPoint([0.5, 0.6]), Mbr(2).setPoint([0.5, 1]), Mbr(2).setPoint([0.5, 0.3]), Mbr(2).setPoint([1, 0.6]), Mbr(2).setPoint([0.7, 0])]
-  print([_.dRanges for _ in mList])
+  print([str(_) for _ in mList])
   parent.setRange([0, 1, 0, 1])
   print("Linear")
   testPartition(LinealPartition(), parent, mList)
-  print([ _.dRanges for e in LinealPartition().partition(parent, mList) for _ in e])
+  print([ str(_) for e in LinealPartition().partition(parent, mList) for _ in e])
   print("Cuadratico")
   testPartition(CuadraticPartition(), parent, mList)
-  print([ _.dRanges for e in CuadraticPartition().partition(parent, mList) for _ in e])
+  print([ str(_) for e in CuadraticPartition().partition(parent, mList) for _ in e])
