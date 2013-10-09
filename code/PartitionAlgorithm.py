@@ -1,5 +1,6 @@
-from Mbr import *
 import random
+from Mbr import *
+
 
 class PartitionError(Exception):
   def __init__(self, value="partition error"):
@@ -13,10 +14,12 @@ class PartitionAlgorithm():
   # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
   def partition(self, mbrParent, mbrList):
     seedsIndex = self.selectSeeds(mbrParent, mbrList)
-    restMbr=mbrList[:]
+    restMbr = mList[:]
     restMbr.remove(mbrList[seedsIndex[0]])
     restMbr.remove(mbrList[seedsIndex[1]])
-    seeds = mbrList[seedsIndex]
+    seeds = [None, None]
+    seeds[0] = mbrList[seedsIndex[0]]
+    seeds[1] = mbrList[seedsIndex[1]]
     return self.partitionFromSeeds(seeds, restMbr)
     
   def selectSeeds(self, mbrParent, mbrList):
@@ -31,7 +34,7 @@ class LinealPartition(PartitionAlgorithm):
     candidatesIndex = []
     candidatesLen = 0
     # Obtenemos candidatos para semillas con los que estan en los bordes del mbr padre
-    for i in range(0,len(mbrList)):
+    for i in range(0, len(mbrList)):
       mbr = mbrList[i]
       for d in range(mbrParent.d):
         if mbr.getMin(d) == mbrParent.getMin(d) or mbr.getMax(d) == mbrParent.getMax(d):
@@ -49,7 +52,7 @@ class LinealPartition(PartitionAlgorithm):
     maxDistance = 0
     # Calculamos la máxima distancia entre los candidatos
     for i in range(0, candidatesLen):
-      for j in range(i+1, candidatesLen):
+      for j in range(i + 1, candidatesLen):
         actDist = candidates[i].distanceTo(candidates[j])
         if actDist > maxDistance:
             maxDistance = actDist
@@ -58,18 +61,20 @@ class LinealPartition(PartitionAlgorithm):
 
   def partitionFromSeeds(self, seeds, restMbr):
     random.shuffle(restMbr)
-    partitions = [[None,seeds[0]],[None,seeds[1]]]
+    partitions = [[None, seeds[0]], [None, seeds[1]]]
     for mbr in restMbr:
-      mbrExpanded1=seeds[0].returnExpandedMBR(mbr)
-      mbrExpanded2=seeds[1].returnExpandedMBR(mbr)
-      crec1= mbrExpanded1.getArea()
-      crec2= mbrExpanded2.getArea()
+      mbrExpanded1 = seeds[0].returnExpandedMBR(mbr)
+      mbrExpanded2 = seeds[1].returnExpandedMBR(mbr)
+      crec1 = mbrExpanded1.getArea() - seeds[0].getArea()
+      crec2 = mbrExpanded2.getArea() - seeds[1].getArea()
       if crec1 < crec2:
-        partitions[0][0]=mbrExpanded1
-        partitions[0]= partitions[0] + [mbr]
+        seeds[0] = mbrExpanded1
+        partitions[0][0] = mbrExpanded1
+        partitions[0] = partitions[0] + [mbr]
       else:
-        partitions[1][0]=mbrExpanded2
-        partitions[1]= partitions[1] + [mbr]
+        seeds[1] = mbrExpanded2
+        partitions[1][0] = mbrExpanded2
+        partitions[1] = partitions[1] + [mbr]
     return partitions
 
 class CuadraticPartition(PartitionAlgorithm):
@@ -88,27 +93,46 @@ class CuadraticPartition(PartitionAlgorithm):
     return seedsIndex
 
   def partitionFromSeeds(self, seeds, restMbr):
-    pass
+    partitions = [[None, seeds[0]], [None, seeds[1]]]
+    for mbr in restMbr:
+      mbrExpanded1 = seeds[0].returnExpandedMBR(mbr)
+      mbrExpanded2 = seeds[1].returnExpandedMBR(mbr)
+      crec1 = mbrExpanded1.getArea() - (seeds[0].getArea() + mbr.getArea())
+      crec2 = mbrExpanded2.getArea() - (seeds[1].getArea() + mbr.getArea())
+      if crec1 < crec2:
+        seeds[0] = mbrExpanded1
+        partitions[0][0] = mbrExpanded1
+        partitions[0] = partitions[0] + [mbr]
+      else:
+        seeds[1] = mbrExpanded2
+        partitions[1][0] = mbrExpanded2
+        partitions[1] = partitions[1] + [mbr]
+    return partitions
+  
+def testPartition(partition, parent, mList):
+  seedsIndex = partition.selectSeeds(parent, mList)
+  print(seedsIndex)
+  restMbr = mList[:]
+  restMbr.remove(mList[seedsIndex[0]])
+  restMbr.remove(mList[seedsIndex[1]])
+  seeds = [None, None]
+  seeds[0] = mList[seedsIndex[0]]
+  seeds[1] = mList[seedsIndex[1]]
+  print([_.dRanges for _ in seeds])
+  print([_.dRanges for _ in restMbr])
+  partitions = partition.partitionFromSeeds(seeds, restMbr)
+  print([_.dRanges for _ in partitions[0]])
+  print([_.dRanges for _ in partitions[1]])
   
 if __name__ == "__main__":
   parent = Mbr(2)
   parent.setPoint([0, 1])
-  list = [Mbr(2).setPoint([0, 0.6]), Mbr(2).setPoint([0.5, 0.6]), Mbr(2).setPoint([0.5, 1]), Mbr(2).setPoint([0.5, 0.3]), Mbr(2).setPoint([1, 0.6]), Mbr(2).setPoint([0.7, 0])]
-  print([_.dRanges for _ in list])
+  mList = [Mbr(2).setPoint([0, 0.6]), Mbr(2).setPoint([0.5, 0.6]), Mbr(2).setPoint([0.5, 1]), Mbr(2).setPoint([0.5, 0.3]), Mbr(2).setPoint([1, 0.6]), Mbr(2).setPoint([0.7, 0])]
+  print([_.dRanges for _ in mList])
   parent.setRange([0, 1, 0, 1])
-  seedsIndex=LinealPartition().selectSeeds(parent, list)
-  print(seedsIndex)
-  restMbr=list[:]
-  restMbr.remove(list[seedsIndex[0]])
-  restMbr.remove(list[seedsIndex[1]])
-  seeds=[None,None]
-  seeds[0] = list[seedsIndex[0]]
-  seeds[1] = list[seedsIndex[1]]
-  print([_.dRanges for _ in seeds])
-  print([_.dRanges for _ in restMbr])
-  partitions=LinealPartition().partitionFromSeeds(seeds, restMbr)
-  print([_.dRanges for _ in partitions[0]])
-  print([_.dRanges for _ in partitions[1]])
-  
-  seedsIndex=CuadraticPartition().selectSeeds(parent, list)
-  print(seedsIndex)
+  print("Linear")
+  testPartition(LinealPartition(), parent, mList)
+  print([ _.dRanges for e in LinealPartition().partition(parent, mList) for _ in e])
+  print("Cuadratico")
+  testPartition(CuadraticPartition(), parent, mList)
+  print([ _.dRanges for e in CuadraticPartition().partition(parent, mList) for _ in e])
