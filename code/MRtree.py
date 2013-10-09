@@ -45,6 +45,10 @@ class MRtree(object):
         # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
+    # Setea la info proveniendo de un split dentro del nodo u hoja
+    def setSplitData(self, thisNodeMbr, childrenMbrPointers):
+        pass
+
     # Añade un hijo al arbol actual (Una tupla (mbr, pointer))
     def insert(self, mbrPointer):
         self.pointers = self.pointers + [mbrPointer.pointer]
@@ -77,6 +81,9 @@ class MRtree(object):
         self.root   = True
         self.offset = rootOffset
 
+    def unsetRoot(self):
+        self.root = False
+
     def needsToSplit(self):
         self.elems == self.M
 
@@ -100,11 +107,15 @@ class MNode(MRtree):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
         self.partitionCount = 0
 
-    # Recibe un Arbol (Nodo u Hoja), y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
-    def insert(self, tree):
+    # Inserta un Arbol (Nodo u Hoja) o un MbrPointer, y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
+    def insert(self, treeData):
         if self.elems == self.M:
             raise MRtreeInsertError()
-        super(MNode, self).insert(tree.getMbrPointer())
+        t = type(treeData)
+        if t == MNode or t == MLeaf:
+            super(MNode, self).insert(treeData.getMbrPointer())
+        elif t == MbrPointer:
+            super(MNode, self).insert(treeData)
 
     def printRtree(self):
         print "Node:"
