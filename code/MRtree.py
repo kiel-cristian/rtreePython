@@ -1,5 +1,6 @@
 # encoding: utf-8
 from Mbr import *
+from time import time
 
 class MRtreeLoadError(Exception):
     def __init__(self):
@@ -104,6 +105,7 @@ class MRtree(object):
 class MNode(MRtree):
     def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
+        self.partitionCount = 0
 
     # Inserta un Arbol (Nodo u Hoja) o un MbrPointer, y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
     def insert(self, treeData):
