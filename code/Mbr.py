@@ -1,3 +1,4 @@
+import random
 from math import sqrt
 
 class MbrError(Exception):
@@ -209,6 +210,10 @@ def listToRanges(d, n, coords):
         mbrCoords = []
 
     return dRanges
+
+def randomMbrPointer(d):
+  randomPoint = [random.random() for _ in range(d)]
+  return Mbr(d).setPoint(randomPoint)
 
 if __name__ == "__main__":
     m = Mbr(2)
