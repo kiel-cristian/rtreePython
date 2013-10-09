@@ -16,18 +16,17 @@ class MRtree(object):
         self.pointers       = [p for p in pointers if p != -1]
         self.elems          = len(pointers)
         self.mbr            = Mbr(d)
-
         self.mbrs           = [m for m in mbrs if m != -2]
         
-        # el Mbr del nodo, es el primer mbr de la lista, los demas corresponden a los de los hijos
-        self.mbr.setRange(self.mbrs[0:self.d*2])
-
-        childMbrsList = self.mbrs[self.d*2:]
-
+        childMbrsList = self.mbrs[:]
         groupedList   = listToRanges(d, len(childMbrsList), childMbrsList)
-
         childMbrs     = [Mbr(d).setRange(g) for g in groupedList]
 
+        # Se calcula el mbr del Nodo actual, en base a los mbrs de los hijos
+        for m in childMbrs:
+            self.mbr.expand(m)
+
+        # tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
     # Recibe un mbrPointer, y actualizo las estructuras internas
