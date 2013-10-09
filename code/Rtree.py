@@ -62,6 +62,18 @@ class Rtree(object):
             self.currentNode = self.nfh.readTree(initOffset)
             self.currentNode.setAsRoot(initOffset)
             self.root = self.currentNode
+            
+        #Metricas
+        self.meanInsertionTime = None
+        self.insertionsCount = 0
+        self.meanTotalNodes = 0
+        self.meanInternalNodes = 0
+        self.meanSearchTime = None:
+        self.searchCount = 0
+        
+    def getMeanNodePartitions(self):
+      ##TODO
+      pass
 
     # Capacidad minima de nodos y hojas
     def m(self):
@@ -86,11 +98,26 @@ class Rtree(object):
     def newNode(self):
         return MNode(M = self.M(), d = self.d())
 
+    def computeMeanNodes(self):
+      ##TODO
+      self.meanTotalNodes=0
+      self.meanInternalNodes = 0    
+
     # Busqueda radial de objeto
     def search(self, r, mbrObject):
-        pass
+      t0 = time()
+      
+      ##TODO
+      
+      t1 = time()
+      if self.meanSearchTime == None: 
+        self.meanSearchTime = t1-t0 
+      else:
+        self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
+        self.searchCount = self.searchCount +1
 
-    def insert(self, mbrPointer):
+    def insert(self, mbrPointer):      
+        t0 = time()
         # Bajo por el arbol hasta encontrar una hoja adecuada
         while self.currentNode.isNode():
             self.chooseNode(mbr)
@@ -100,6 +127,14 @@ class Rtree(object):
             childrenMbrs = self.currentNode.getChildrenMbrs()
 
             results = self.pa.partition()
+            
+        t1 = time()
+        if self.meanInsertionTime == None: 
+          self.meanInsertionTime = t1-t0 
+        else:
+          self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
+          self.insertionsCount = self.insertionsCount +1
+        self.computeMeanNodes()
 
     # AUXILIARES: SUJETAS A MODIFICACION
 

@@ -1,9 +1,11 @@
 # encoding: utf-8
 import io
-import sys
-from MRtree import *
 import random
 import struct
+import sys
+
+from MRtree import *
+
 
 # ERRORS
 class FileHandlerError(Exception):
@@ -11,7 +13,6 @@ class FileHandlerError(Exception):
         self.value = "file handler error"
     def __str__(self):
         return repr(self.value)
-
 class RtreeReadError(FileHandlerError):
     def __init__(self):
         self.value = "Error reading tree on disc, invalid offset or invalid data on file"
@@ -62,11 +63,11 @@ class RtreeFileHandler(object):
         f.close()
 
     def printInfo(self):
-        print "M:" + str(self.M)
-        print "m:" + str(self.m)
-        print "Id Bytes: " + str(self.idBytes)
-        print "Mbr Bytes :" + str(self.mbrBytes)
-        print "Pointer Bytes :" + str(self.pBytes)
+        print("M:" + str(self.M))
+        print("m:" + str(self.m))
+        print("Id Bytes: " + str(self.idBytes))
+        print("Mbr Bytes :" + str(self.mbrBytes))
+        print("Pointer Bytes :" + str(self.pBytes))
 
     def write(self, buf, offset, dataFile = None):
         if dataFile == None:
@@ -92,10 +93,10 @@ class RtreeFileHandler(object):
         return data
 
     def deleteTree(self, data):
-        if type(data) == EmptyNode:
+        if type(data) == Mbr.EmptyNode:
             self.writeTree(data)
             self.availableOffsets = self.availableOffsets + data.offset
-        elif type(data) == EmptyLeaf:
+        elif type(data) == Mbr.EmptyLeaf:
             self.writeTree(data)
             self.availableOffsets = self.availableOffsets + data.offset
         else:
@@ -187,9 +188,9 @@ def ioTest():
     buf = f.read(struct.calcsize("d")*n)
     floatlist2 = struct.unpack('%sd' % n,  buf)
 
-    print floatlist
-    print floatlist2
-    print floatlist[0] == floatlist2[0]
+    print(floatlist)
+    print(floatlist2)
+    print(floatlist[0] == floatlist2[0])
 
 def nfhDataReadTest():
     d = 2
@@ -265,7 +266,7 @@ def rtreeFileHandlerTest():
     returnLeaf.printRtree()
     returnNode.printRtree()
 
-    print nfh.elems
+    print(nfh.elems)
 
 if __name__=="__main__":
     ioTest()
