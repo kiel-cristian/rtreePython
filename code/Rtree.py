@@ -23,13 +23,15 @@ class Rtree(object):
         self.nfh = nfh
         self.cache = []                             # cache:      Rtree node cache
         self.k = 0                                  # k:          Nodes on cache
-        self.maxK = log(maxE, self.M()) -1            # maxK:      Max nodes on cache
+        self.maxK = log(maxE, self.M()) -1          # maxK:      Max nodes on cache
+
+        self.M = M
+        self.m = 
 
         # Init Rtree
         root = MNode(maxE = self.nfh.p, d = d, offset = 0, mbrList = Mbr(d).dump(), pointers = [])
         root.setAsRoot()
         self.currentNode = root
-        self.root     = True
         self.nfh.addTree(self.currentNode)
 
     # Minimun node entries

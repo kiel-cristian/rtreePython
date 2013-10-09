@@ -16,6 +16,9 @@ class Mbr:
         self.coords     = [maxV,minV]*self.d
         self.dRanges    = self.listToRange(self.coords)
 
+    def __str__(self):
+        return str(self.dRanges)
+
     def getMin(self, dimension):
         return self.dRanges[dimension][0]
 
@@ -47,7 +50,7 @@ class Mbr:
         return dRanges
 
     def equals(self, mbr):
-        return false
+        return False
 
     def toStr(self):
         return str(self.dRanges)
@@ -64,6 +67,7 @@ class Mbr:
 
         self.coords  = dataList
         self.dRanges = self.listToRange(dataList)
+        return self
 
     def setPoint(self, dPoint):
         if len(dPoint) != self.d:
@@ -72,6 +76,7 @@ class Mbr:
         dup = [[x,x] for x in dPoint]
         self.coords = [val for subl in dup for val in subl]
         self.dRanges = self.listToRange(self.coords)
+        return self
 
     def deadSpace(self, mbr):
         pass
@@ -107,6 +112,21 @@ class Mbr:
             elif mbr.getMax(i) > dMax:
                 self.setMax(i, mbr.getMax(i))
 
+def listToRanges(d, n, coords):
+    helper  = Mbr(d)
+    dRanges = []
+    mbrCoords = []
+    i = 0
+    while i < n:
+        for j in range(2*d):
+            mbrCoords = mbrCoords + [coords[i]]
+            i = i +1
+
+        dRanges = dRanges + [mbrCoords]
+        mbrCoords = []
+
+    return dRanges
+
 if __name__=="__main__":
     m = Mbr(2)
     if not m.dRanges == [[1,0], [1,0]]:
@@ -130,15 +150,15 @@ if __name__=="__main__":
 
     m2 = Mbr(2)
     m2.setPoint([0.3,0.7])
-    print str(m.checkExpand(m2))
+    print(m.checkExpand(m2))
 
     m.setPoint([0.3,0.7])
-    print m.distanceTo(m2) == 0
-    print m2.distanceTo(m) == 0
+    print(m.distanceTo(m2) == 0)
+    print(m2.distanceTo(m) == 0)
 
     m.setPoint([0.4,0.7])
-    print m.distanceTo(m2)
+    print(m.distanceTo(m2))
 
     m.setPoint([0.3,1.4])
-    print m.distanceTo(m2)
+    print(m.distanceTo(m2))
 
