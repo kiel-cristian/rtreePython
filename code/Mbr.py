@@ -59,10 +59,10 @@ class Mbr:
         return dRanges
 
     def equals(self, mbr):
-        return False
-
-    def toStr(self):
-        return str(self.dRanges)
+        for d in range(self.d):
+            if self.getMin(d) != mbr.getMin(d) or self.getMax(d) != mbr.getMax(d):
+                return False
+        return True
 
     def len(self):
         return self.d * 2

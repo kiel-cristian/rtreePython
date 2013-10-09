@@ -61,7 +61,7 @@ class MRtree(object):
         print "\tM: " + str(self.M)
         print "\toffset: " + str(self.offset)
         print "\td: " + str(self.d)
-        print "\tmbr[" + str(self.mbr.len()) + "]: " + self.mbr.toStr()
+        print "\tmbr[" + str(self.mbr.len()) + "]: " + str(self.mbr)
         print "\tmbrs[" + str(len(self.mbrs)) + "]: " + str(self.mbrs)
         print "\tpointers[" + str(len(self.pointers)) + "]: " + str(self.pointers)
         print "\tMbrPointers[" + str(len(self.mbrPointers)) + "]: " + str([str(_) for _ in self.mbrPointers])
