@@ -28,17 +28,6 @@ class PartitionAlgorithm():
   def partitionFromSeeds(self, seeds, restMbr):
     pass
   
-  def MinAreaSelector(self,mbrPointer, mbrPointersList):
-    minimum = None
-    selected = None
-    for mbr in mbrPointersList:
-      mbrExpanded = mbrPointer.returnExpandedMBR(mbr)
-      crec = mbrExpanded.getArea() - mbrPointer.getArea()
-      if minimum == None | crec < minimum:
-        minimum = crec
-        selected = mbr
-    return selected
-
 class LinealPartition(PartitionAlgorithm):
   def selectSeeds(self, mbrParent, mbrPointerList):
     candidates = []

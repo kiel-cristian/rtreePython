@@ -23,6 +23,10 @@ class MbrApi():
     pass
   def deadSpace(self, o):
     pass
+  def setRange(self, o):
+    pass
+  def areIntersecting(self,o):
+    pass
 
 class MbrPointer(MbrApi):
   def __init__(self, mbr, pointer):
@@ -38,6 +42,9 @@ class MbrPointer(MbrApi):
     return self.pointer
   def getMbr(self):
     return self.mbr
+  def setRange(self, o):
+    self.mbr.setRange(o)
+    return self
   def distanceTo(self, mbrPointer):
     return self.getMbr().distanceTo(mbrPointer.getMbr())
   def returnExpandedMBR(self, mbrPointer):
@@ -46,6 +53,8 @@ class MbrPointer(MbrApi):
     return self.getMbr().getArea()
   def deadSpace(self, mbrPointer):
     return self.getMbr().deadSpace(mbrPointer.getMbr())
+  def areIntersecting(self,mbrPointer):
+    return self.getMbr().areIntersecting(mbrPointer.getMbr())
 
 class Mbr(MbrApi):
     def __init__(self, d, minV=0, maxV=1):
@@ -175,6 +184,16 @@ class Mbr(MbrApi):
                 
             elif mbr.getMax(i) > dMax:
                 self.setMax(i, mbr.getMax(i))
+                
+    def areIntersecting(self,mbr):
+      for d in range(self.d):
+        mMin = self.getMin(d)
+        mMax = self.getMax(d)
+        eMin = mbr.getMin(d)
+        eMax = mbr.getMax(d)
+        if ((mMax < eMax) & (mMin < eMin)) | ((mMin > eMin) & (mMax > eMax)):
+          return True
+      return False
 
 def listToRanges(d, n, coords):
     helper = Mbr(d)
