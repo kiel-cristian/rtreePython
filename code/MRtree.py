@@ -1,4 +1,6 @@
 from Mbr import *
+from time import time
+
 class MRtreeLoadError(Exception):
     def __init__(self):
         self.value = "Mbr length must match with pointers length"
@@ -39,7 +41,7 @@ class MRtree(object):
 
         # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
-
+        
     # Recibe un mbrPointer, y actualizo las estructuras internas
     def insert(self, mbrPointer):
         self.pointers = self.pointers + [mbrPointer.pointer]
@@ -75,6 +77,7 @@ class MRtree(object):
 class MNode(MRtree):
     def __init__(self, M, d, offset, mbrs = [], pointers = []):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
+        self.partitionCount = 0
 
     def printRtree(self):
         print "Node:"

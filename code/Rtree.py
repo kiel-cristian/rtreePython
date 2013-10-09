@@ -33,6 +33,14 @@ class Rtree(object):
         root.setAsRoot()
         self.currentNode = root
         self.nfh.addTree(self.currentNode)
+        
+        #Metricas
+        self.meanInsertionTime = None
+        self.insertionsCount = 0
+        self.meanTotalNodes = 0
+        self.meanInternalNodes = 0
+        self.meanSearchTime = None:
+        self.searchCount = 0
 
     # Minimun node entries
     def m(self):
@@ -53,6 +61,11 @@ class Rtree(object):
 
     def newNode(self):
         return EmptyNode(maxE = self.nfh.p, d = d, offset = 0, mbrLen = self.nfh.r, pointersLen = self.nfh.p)
+
+    def computeMeanNodes(self):
+      ##TODO
+      self.meanTotalNodes=0
+      self.meanInternalNodes = 0
 
     def loadRtreeData(self):
         vectors = self.nfh.getVectors()
@@ -77,33 +90,41 @@ class Rtree(object):
         else:
             raise RtreeHeightError()
 
-    def insert(self, vector):
-        checkPointer = self.currentNode.pointers[0]
+    def insert(self, vector):      
+      t0 = time()
+      checkPointer = self.currentNode.pointers[0]
 
-        if self.isNode(checkPointer):
-            p = self.chooseTree(vector)
-            self.seekNode(p)
-            self.insert(vector)
+      if self.isNode(checkPointer):
+        p = self.chooseTree(vector)
+        self.seekNode(p)
+        self.insert(vector)
 
+      else:
+        if self.needToSplit:
+          node = self.cache[0]
+          newNode = EmptyNode()
+          parent = self.cache[1]
+
+          self.splitNode(parent,node,newNode)
+          self.adjustTree()
         else:
-            if self.needToSplit:
-                node = self.cache[0]
-                newNode = EmptyNode()
-                parent = self.cache[1]
+          mLeaf = self.chooseLeaf(vector)
+          self.nfh.writeTree(mLeaf)
 
-                self.splitNode(parent,node,newNode)
-                self.adjustTree()
-            else:
-                mLeaf = self.chooseLeaf(vector)
-                self.nfh.writeTree(mLeaf)
+          currentNode = self.cache[0]
+          currentNode.adjustMbr(mLeaf)
 
-                currentNode = self.cache[0]
-                currentNode.adjustMbr(mLeaf)
-
-                self.nfh.writeTree(currentNode)
-                self.adjustTree()
-                return
-
+          self.nfh.writeTree(currentNode)
+          self.adjustTree()
+      
+      t1 = time()
+      if self.meanInsertionTime == None: 
+        self.meanInsertionTime = t1-t0 
+      else:
+        self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
+        self.insertionsCount = self.insertionsCount +1
+      self.computeMeanNodes()
+      
     def chooseLeaf(self,vector):
         l = self.chooseTree(vector)
         if l == -1:
@@ -124,7 +145,7 @@ class Rtree(object):
         return minPointer
 
     def splitNode(self,parent,mNode, newNode):
-        pass
+      mNode.partitionCount = partitionCount + 1
 
     def adjustTree(self):
         for i in range(0,self.cache-1):
@@ -151,7 +172,16 @@ class Rtree(object):
         #     self.nfh.writeTree(node)
 
     def rangeQuery(self, q, epsilon, node):
-        pass
+      t0 = time()
+      
+      ##TODO
+      
+      t1 = time()
+        if self.meanSearchTime == None: 
+          self.meanSearchTime = t1-t0 
+        else:
+          self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
+          self.searchCount = self.searchCount +1
 
     def minDist(self, q, region):
         pass

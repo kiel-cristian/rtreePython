@@ -12,7 +12,7 @@ class PartitionError(Exception):
 class PartitionAlgorithm():
   
   # Realiza la partición efectivamente
-  # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
+  # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los mbr que la componen
   def partition(self, mbrParent, mbrList):
     seedsIndex = self.selectSeeds(mbrParent, mbrList)
     restMbr = mList[:]
