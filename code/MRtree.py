@@ -13,14 +13,7 @@ class MRtreeAddChildError(Exception):
     def __str__(self):
         return repr(self.value)
 
-class MbrPointer():
-    def __init__(self, mbr, pointer):
-        self.mbr     = mbr
-        self.pointer = pointer
-    def __str__(self):
-        return "{mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
-
-# COMPACTED OBJECTS
+# MEMORY OBJECTS
 class MRtree(object):
     def __init__(self, d, M, offset = 0, mbrs = [], pointers = []):
         self.d = d

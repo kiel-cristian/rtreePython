@@ -2,7 +2,6 @@
 import random
 from Mbr import *
 
-
 class PartitionError(Exception):
   def __init__(self, value="partition error"):
     self.value = value
@@ -13,30 +12,31 @@ class PartitionAlgorithm():
   
   # Realiza la partición efectivamente
   # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
-  def partition(self, mbrParent, mbrList):
-    seedsIndex = self.selectSeeds(mbrParent, mbrList)
+  def partition(self, mbrParent, mbrPointerList):
+    seedsIndex = self.selectSeeds(mbrParent, mbrPointerList)
     restMbr = mList[:]
-    restMbr.remove(mbrList[seedsIndex[0]])
-    restMbr.remove(mbrList[seedsIndex[1]])
+    restMbr.remove(mbrPointerList[seedsIndex[0]])
+    restMbr.remove(mbrPointerList[seedsIndex[1]])
     seeds = [None, None]
-    seeds[0] = mbrList[seedsIndex[0]]
-    seeds[1] = mbrList[seedsIndex[1]]
+    seeds[0] = mbrPointerList[seedsIndex[0]]
+    seeds[1] = mbrPointerList[seedsIndex[1]]
     return self.partitionFromSeeds(seeds, restMbr)
     
-  def selectSeeds(self, mbrParent, mbrList):
+  def selectSeeds(self, mbrParent, mbrPointerList):
     pass
   
   def partitionFromSeeds(self, seeds, restMbr):
     pass
 
 class LinealPartition(PartitionAlgorithm):
-  def selectSeeds(self, mbrParent, mbrList):
+  def selectSeeds(self, mbrParent, mbrPointerList):
     candidates = []
     candidatesIndex = []
     candidatesLen = 0
+
     # Obtenemos candidatos para semillas con los que estan en los bordes del mbr padre
-    for i in range(0, len(mbrList)):
-      mbr = mbrList[i]
+    for i in range(0, len(mbrPointerList)):
+      mbr = mbrPointerList[i]
       for d in range(mbrParent.d):
         if mbr.getMin(d) == mbrParent.getMin(d) or mbr.getMax(d) == mbrParent.getMax(d):
           candidates = candidates + [mbr]
@@ -79,15 +79,15 @@ class LinealPartition(PartitionAlgorithm):
     return partitions
 
 class CuadraticPartition(PartitionAlgorithm):
-  def selectSeeds(self, mbrParent, mbrList):
-    length = len(mbrList)
+  def selectSeeds(self, mbrParent, mbrPointerList):
+    length = len(mbrPointerList)
     seedsIndex = [None , None]
     actualDeadSpace = 0;
     maxDeadSpace = 0
     # Calculamos el máximo espacio muerto
     for i in range(0, length):
       for j in range(i + 1, length):
-        actualDeadSpace = mbrList[i].deadSpace(mbrList[j])
+        actualDeadSpace = mbrPointerList[i].deadSpace(mbrPointerList[j])
         if actualDeadSpace > maxDeadSpace:
             maxDeadSpace = actualDeadSpace
             seedsIndex = [i, j]
@@ -122,13 +122,17 @@ def testPartition(partition, parent, mList):
   print([str(_) for _ in seeds])
   print([str(_) for _ in restMbr])
   partitions = partition.partitionFromSeeds(seeds, restMbr)
+  print "Partitions:"
   print([str(_) for _ in partitions[0]])
   print([str(_) for _ in partitions[1]])
+
+def newMbrPointer(point):
+  return MbrPointer(Mbr(2).setPoint(point), 0)
   
 if __name__ == "__main__":
   parent = Mbr(2)
   parent.setPoint([0, 1])
-  mList = [Mbr(2).setPoint([0, 0.6]), Mbr(2).setPoint([0.5, 0.6]), Mbr(2).setPoint([0.5, 1]), Mbr(2).setPoint([0.5, 0.3]), Mbr(2).setPoint([1, 0.6]), Mbr(2).setPoint([0.7, 0])]
+  mList = [newMbrPointer([0, 0.6]), newMbrPointer([0.5, 0.6]), newMbrPointer([0.5, 1]), newMbrPointer([0.5, 0.3]), newMbrPointer([1, 0.6]), newMbrPointer([0.7, 0])]
   print([str(_) for _ in mList])
   parent.setRange([0, 1, 0, 1])
   print("Linear")
