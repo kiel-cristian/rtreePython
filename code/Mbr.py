@@ -109,6 +109,21 @@ class Mbr:
             elif mbr.getMax(i) > dMax:
                 self.setMax(i, mbr.getMax(i))
 
+def listToRanges(d, n, coords):
+    helper  = Mbr(d)
+    dRanges = []
+    mbrCoords = []
+    i = 0
+    while i < n:
+        for j in range(2*d):
+            mbrCoords = mbrCoords + [coords[i]]
+            i = i +1
+
+        dRanges = dRanges + [mbrCoords]
+        mbrCoords = []
+
+    return dRanges
+
 if __name__=="__main__":
     m = Mbr(2)
     if not m.dRanges == [[1,0], [1,0]]:
