@@ -40,13 +40,23 @@ class MRtree(object):
         # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
-    # Recibe un mbrPointer, y actualizo las estructuras internas
-    def insert(self, mbrPointer):
+    # Recibe un Arbol (Nodo u Hoja), y actualizo las estructuras internas del nodo actual
+    def insert(self, tree):
+        mbrPointer = tree.getMbrPointer()
+
         self.pointers = self.pointers + [mbrPointer.pointer]
         self.elems = self.elems + 1
         self.mbr.expand(mbrPointer.mbr)
         self.mbrs  = self.mbrs + mbrPointer.mbr.dump()
         self.mbrPointers = self.mbrPointers + [mbrPointer]
+
+    # Esta estructura se ocupa para algoritmos del Rtree
+    def getChilds(self):
+        return self.mbrPointers
+
+    # Esta estructura se ocupa para insertar una version compacta del Nodo a otro Nodo u Hoja
+    def getMbrPointer(self):
+        return MbrPointer(self.mbr, self.offset)
 
     def dumpMbrs(self):
         return self.mbrs     + [-2.0 for _ in range((self.M - self.elems )*2*self.d)]
@@ -56,6 +66,9 @@ class MRtree(object):
 
     def setAsRoot(self):
         self.root = True
+
+    def needsToSplit(self):
+        self.elems == self.M
 
     def printRtree(self):
         print "\tM: " + str(self.M)
@@ -116,3 +129,7 @@ if __name__=="__main__":
     node2.printRtree()
     print "dumpMbr\t\t\t[" + str(len(node2.dumpMbrs())) + "]: " + str(node2.dumpMbrs())
     print "dumpPointer\t[" + str(len(node2.dumpPointers())) + "]: " + str(node2.dumpPointers())
+
+    # Simboliza raiz vacia
+    root  = MNode(M = 50, d = 2, offset = 0,  mbrs = [],  pointers = [])
+    root.printRtree()

@@ -103,7 +103,7 @@ class RtreeFileHandler(object):
             raise RtreeDeleteError()
 
     # Añade un nodo al final del archivo o dentro de un espacio disponible
-    def addTree(self,data):
+    def saveTree(self,data):
         if len(self.availableOffsets) > 0:
             data.offset = self.availableOffsets[0]
             self.availableOffsets = self.availableOffsets[1:]
@@ -252,9 +252,9 @@ def rtreeFileHandlerTest():
     returnLeaf = nfh.readTree(offset)
     returnLeaf.printRtree()
 
-    nfh.addTree(dataLeaf)
+    nfh.saveTree(dataLeaf)
     returnLeaf = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)
-    nfh.addTree(dataNode)
+    nfh.saveTree(dataNode)
     returnNode = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)
 
     returnLeaf.printRtree()
