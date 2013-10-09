@@ -26,10 +26,9 @@ class RtreeDeleteError(FileHandlerError):
 # FILE HANDLERS
 
 class RtreeFileHandler(object):
-    def __init__(self, loadDataFile, dataFile, d, M):
-
-        self.dataFile = dataFile
-        self.loadDataFile = loadDataFile
+    def __init__(self, loadDataFile, dataFile, d, M, initOffset = 0):
+        self.dataFile     = "data/" + dataFile
+        self.loadDataFile = "data/" + loadDataFile
 
         self.M = M   # Cantidad maxima de entradas
         self.m = M/2 # Cantidad minima de entradas
@@ -53,9 +52,9 @@ class RtreeFileHandler(object):
         self.nodeId = True
         self.leafId = False
 
-        self.elems  = []           # offsets de elementos en el arbol
-        self.availableOffsets = [] # offsets disponibles para reocupar
-        self.lastOffset = 0        # ultimo offset del archivo donde es posible escribir mas nodos
+        self.elems  = []              # offsets de elementos en el arbol
+        self.availableOffsets = []    # offsets disponibles para reocupar
+        self.lastOffset = initOffset  # ultimo offset del archivo donde es posible escribir mas nodos
 
         # Creating Rtree file
         f = io.open(self.dataFile,'w+b')
@@ -102,14 +101,20 @@ class RtreeFileHandler(object):
         else:
             raise RtreeDeleteError()
 
-    # Añade un nodo al final del archivo o dentro de un espacio disponible
-    def saveTree(self,data):
+    # Guarda un arbol en disco, usando su valor interno de offset
+    def saveTree(self, tree):
+        if tree.offset < 0:
+            tree.offset = self.lastOffset
+        self.writeTree(tree)
+
+    # Guarda un nuevo arbol en disco
+    def saveNewTree(self,tree):
         if len(self.availableOffsets) > 0:
-            data.offset = self.availableOffsets[0]
+            tree.offset = self.availableOffsets[0]
             self.availableOffsets = self.availableOffsets[1:]
         else:
-            data.offset = self.lastOffset
-        self.writeTree(data)
+            tree.offset = self.lastOffset
+        self.writeTree(tree)
         self.lastOffset = self.lastOffset + self.nodeBytes
 
     def writeTree(self, MRtree):
@@ -133,18 +138,18 @@ class RtreeFileHandler(object):
             return False
 
     def readTree(self, offset):
-        try:
-            buf = self.read(self.nodeBytes, offset)
+        # try:
+        buf = self.read(self.nodeBytes, offset)
 
-            bufId = buf[0:self.idBytes]
-            bufMbrs     = buf[self.idBytes : self.mbrBytes+1]
-            bufPointers = buf[self.mbrBytes+1 : ]
+        bufId       = buf[0:self.idBytes]
+        bufMbrs     = buf[self.idBytes : self.mbrBytes+1]
+        bufPointers = buf[self.mbrBytes+1 : ]
 
-            check     = (struct.unpack('1b', bufId))[0]
-            mbrs      = struct.unpack('%sf' % self.mbrFloats, bufMbrs)
-            pointers  = struct.unpack('%si' % self.pointerInts, bufPointers)
-        except:
-            raise RtreeReadError()
+        check     = (struct.unpack('1b', bufId))[0]
+        mbrs      = struct.unpack('%sf' % self.mbrFloats, bufMbrs)
+        pointers  = struct.unpack('%si' % self.pointerInts, bufPointers)
+        # except:
+        #     raise RtreeReadError()
 
         if check == self.nodeId:
             return MNode(M = self.M, d = self.d, offset = offset, mbrs = mbrs, pointers = pointers)
@@ -211,7 +216,7 @@ def rtreeFileHandlerTest():
     M = 50
 
     nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
-                            dataFile        = "rtree" + str(d) + "D.bin",
+                            dataFile        = "TestRtree" + str(d) + "D.bin",
                             d = d,
                             M = 50)
     nfh.printInfo()
@@ -252,7 +257,7 @@ def rtreeFileHandlerTest():
     returnLeaf = nfh.readTree(offset)
     returnLeaf.printRtree()
 
-    nfh.saveTree(dataLeaf)
+    nfh.saveNewTree(dataLeaf)
     returnLeaf = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)
     nfh.saveTree(dataNode)
     returnNode = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)

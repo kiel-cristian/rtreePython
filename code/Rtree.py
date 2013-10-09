@@ -21,7 +21,8 @@ class Rtree(object):
         self.nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
                                 dataFile        = "rtree" + str(d) + "D.bin",
                                 d               = d,
-                                M               = M)
+                                M               = M,
+                                initOffset      = initOffset)
 
         self.cache = []                             # cache: lista de nodos visitados
         self.k = 0                                  # k: nodos en cache
@@ -30,16 +31,12 @@ class Rtree(object):
         # Inicializacion de la raiz
         if reset:
             # Se construye una raiz vacia
-            self.currentNode = self.newNode(initOffset)
+            self.currentNode = self.newNode()
             self.currentNode.setAsRoot()
 
             # Creo dos hojas para mantener invariante de la raiz
-            leaf1 = self.newLeaf(initOffset)
-            leaf2 = self.newLeaf(initOffset)
-
-            # Guardo dos hojas de la raiz en disco
-            self.nfh.saveTree(leaf1)
-            self.nfh.saveTree(leaf2)
+            leaf1 = self.newLeaf()
+            leaf2 = self.newLeaf()
 
             # Agrego las hojas al nodo raiz
             self.currentNode.insert(leaf1)
@@ -48,12 +45,16 @@ class Rtree(object):
             # Guardo el nodo raiz en disco
             self.nfh.saveTree(self.currentNode)
 
+            # Guardo dos hojas de la raiz en disco
+            self.nfh.saveNewTree(leaf1)
+            self.nfh.saveNewTree(leaf2)
+
             # Guardo una referencia al nodo raiz
             self.root = self.currentNode
         else:
-            # se carga la raiz de disco
+            # Se carga la raiz de disco
             self.currentNode = self.nfh.readTree(initOffset)
-            self.currentNode.setAsRoot()
+            self.currentNode.setAsRoot(initOffset)
             self.root = self.currentNode
 
     # Capacidad minima de nodos y hojas
@@ -73,11 +74,11 @@ class Rtree(object):
     def isNode(self, p):
         return self.nfh.isNode(p)
 
-    def newLeaf(self, initOffset):
-        return MLeaf(M = self.M(), d = self.d(), offset = initOffset, mbrs = [], pointers = [])
+    def newLeaf(self):
+        return MLeaf(M = self.M(), d = self.d())
 
-    def newNode(self, initOffset):
-        return MNode(M = self.M(), d = self.d(), offset = initOffset, mbrs = [], pointers = [])
+    def newNode(self):
+        return MNode(M = self.M(), d = self.d())
 
     def loadRtreeData(self):
         vectors = self.nfh.getVectors()

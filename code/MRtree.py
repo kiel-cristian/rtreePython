@@ -14,7 +14,7 @@ class MbrPointer():
 
 # COMPACTED OBJECTS
 class MRtree(object):
-    def __init__(self, d, M, offset, mbrs, pointers):
+    def __init__(self, d, M, offset = 0, mbrs = [], pointers = []):
         self.d = d
         self.M = M
         self.offset = offset
@@ -64,8 +64,9 @@ class MRtree(object):
     def dumpPointers(self):
         return self.pointers + [-1 for _ in range(self.M - self.elems)]
 
-    def setAsRoot(self):
-        self.root = True
+    def setAsRoot(self, rootOffset = 0):
+        self.root   = True
+        self.offset = rootOffset
 
     def needsToSplit(self):
         self.elems == self.M
@@ -86,7 +87,7 @@ class MRtree(object):
         pass
 
 class MNode(MRtree):
-    def __init__(self, M, d, offset, mbrs = [], pointers = []):
+    def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
     def printRtree(self):
@@ -100,7 +101,7 @@ class MNode(MRtree):
         return False
 
 class MLeaf(MRtree):
-    def __init__(self, M, d, offset, mbrs = [], pointers = []):
+    def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MLeaf,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
     def printRtree(self):
