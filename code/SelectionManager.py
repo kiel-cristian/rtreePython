@@ -14,11 +14,11 @@ class SelectionError(Exception):
     return repr(self.value)
 
 class SelectionManager():
-  def MinAreaSelector(self,mbrPointer, mbrPointersList):
+  def select(self,mbrPointer, mbrPointersList):
     pass
 
 class RTreeSelection(SelectionManager):
-  def MinAreaSelector(self,mbrPointer, mbrPointersList):
+  def select(self,mbrPointer, mbrPointersList):
     minimum = None
     selected = None
     for mbr in mbrPointersList:
@@ -35,7 +35,7 @@ class RTreeSelection(SelectionManager):
     return selected
 
 class RPlusTreeSelection(SelectionManager):
-  def MinAreaSelector(self,mbrPointer, mbrPointersList):
+  def select(self,mbrPointer, mbrPointersList):
     selected = []
     for mbr in mbrPointersList:
       if mbrPointer.areIntersecting(mbr):
@@ -52,7 +52,7 @@ if __name__ == "__main__":
            , newMbrPointer([0.2, 0.5]).setRange([0.1, 0.3, 0.4,0.6])
            , newMbrPointer([0.8, 0.5]).setRange([0.7, 0.9, 0.4,0.6])]
   print([str(_) for _ in mList])
-  print("Linear")
-  print(str(RTreeSelection().MinAreaSelector(parent, mList)))
-  print("Cuadratico")
-  print([ str(_) for _ in RPlusTreeSelection().MinAreaSelector(parent, mList)])
+  print("Rtree")
+  print(str(RTreeSelection().select(parent, mList)))
+  print("Rtree+")
+  print([ str(_) for _ in RPlusTreeSelection().select(parent, mList)])
