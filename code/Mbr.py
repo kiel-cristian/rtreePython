@@ -213,7 +213,7 @@ def listToRanges(d, n, coords):
 
 def randomMbrPointer(d):
   randomPoint = [random.random() for _ in range(d)]
-  return Mbr(d).setPoint(randomPoint)
+  return MbrPointer(Mbr(d).setPoint(randomPoint), int(randomPoint[0]*1000))
 
 if __name__ == "__main__":
     m = Mbr(2)
