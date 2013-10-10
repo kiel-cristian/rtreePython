@@ -2,15 +2,15 @@
 from SelectionManager import *
 from RtreeApi import *
 
-class Rtree(RtreeApi):
+class RtreePlus(RtreeApi):
     # d          : dimension de vectores del arbol
     # M          : capacidad maxima de nodos y hojas
-    # maxE       : cantidad maxima de elementos que almacenara el Rtree
+    # maxE       : cantidad maxima de elementos que almacenara el RtreePlus
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
-        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
-        self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
+        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
+        self.sa = RtreePlusSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
 
     # Busqueda radial de objeto
     def search(self, r, mbrObject):
@@ -36,7 +36,7 @@ class Rtree(RtreeApi):
 
         if self.needToSplit():
             newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
-            self.adjust(newLeafMbrPointer) # Inicio ajuste hacia arriba del Rtree
+            self.adjust(newLeafMbrPointer) # Inicio ajuste hacia arriba del RtreePlus
         else:
             self.currentNode.insert(mbrPointer)
             self.nfh.saveTree(self.currentNode) # se guarda nodo en disco
@@ -50,7 +50,7 @@ class Rtree(RtreeApi):
           self.insertionsCount = self.insertionsCount +1
         self.computeMeanNodes()
 
-    # Analogo a insert, inserta nuevos nodos hacia arriba en Rtree, y sigue insertando en caso de desbordes
+    # Analogo a insert, inserta nuevos nodos hacia arriba en RtreePlus, y sigue insertando en caso de desbordes
     def adjust(self, nodeMbrPointer):
         lastNodeMbrPointer = nodeMbrPointer
 
@@ -86,7 +86,7 @@ class Rtree(RtreeApi):
 if __name__=="__main__":
     d = 2
     M = 100
-    rtree = Rtree(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    rtree = RtreePlus(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
     objects = [randomMbrPointer(d) for i in range(200)]
 

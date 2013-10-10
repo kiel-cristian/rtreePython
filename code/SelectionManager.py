@@ -17,7 +17,7 @@ class SelectionManager():
   def select(self,mbrPointer, mbrPointersList):
     pass
 
-class RTreeSelection(SelectionManager):
+class RtreeSelection(SelectionManager):
   def select(self,mbrPointer, mbrPointersList):
     minimum = None
     selected = None
@@ -34,7 +34,7 @@ class RTreeSelection(SelectionManager):
         selected = mbr
     return selected
 
-class RPlusTreeSelection(SelectionManager):
+class RtreePlusSelection(SelectionManager):
   def select(self,mbrPointer, mbrPointersList):
     selected = []
     for mbr in mbrPointersList:
@@ -53,6 +53,6 @@ if __name__ == "__main__":
            , newMbrPointer([0.8, 0.5]).setRange([0.7, 0.9, 0.4,0.6])]
   print([str(_) for _ in mList])
   print("Rtree")
-  print(str(RTreeSelection().select(parent, mList)))
+  print(str(RtreeSelection().select(parent, mList)))
   print("Rtree+")
-  print([ str(_) for _ in RPlusTreeSelection().select(parent, mList)])
+  print([ str(_) for _ in RtreePlusSelection().select(parent, mList)])

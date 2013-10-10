@@ -31,7 +31,7 @@ if __name__ == '__main__':
     mTree = Rtree(2 ** d)
     for n in range (1, 11):
       f.write("d n meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
-      # Construyo el RTree con los elementos
+      # Construyo el Rtree con los elementos
       for s in range (n * 10 ** 5):
         m = Mbr(2 ** d)
         m.setPoint([random.random() for _ in range(2 ** d)])
