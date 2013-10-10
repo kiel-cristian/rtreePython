@@ -34,7 +34,7 @@ class MbrPointer(MbrApi):
       self.mbr     = mbr
       self.pointer = pointer
   def __str__(self):
-      return "{mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
+      return "[MbrPointer]{ mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
   def getMin(self,d):
     return self.mbr.getMin(d)
   def getMax(self,d):
@@ -64,7 +64,7 @@ class Mbr(MbrApi):
         self.dRanges = self.listToRange(self.coords)
         
     def __str__(self):
-        return str(self.dRanges)
+        return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
 
     def getArea(self):
       area = -1.0

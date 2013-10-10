@@ -45,6 +45,9 @@ class MRtree(object):
         # Tuplas de (mbr, punteros) hijos
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
+    def __str__(self):
+        return "[Tree]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
+
     # Setea la info proveniendo de un split dentro del nodo u hoja
     def setSplitData(self, thisNodeMbr, childrenMbrPointers):
         pass
@@ -87,15 +90,6 @@ class MRtree(object):
     def needsToSplit(self):
         self.elems == self.M
 
-    def printRtree(self):
-        print "\tM: " + str(self.M)
-        print "\toffset: " + str(self.offset)
-        print "\td: " + str(self.d)
-        print "\tmbr[" + str(self.mbr.len()) + "]: " + str(self.mbr)
-        print "\tmbrs[" + str(len(self.mbrs)) + "]: " + str(self.mbrs)
-        print "\tpointers[" + str(len(self.pointers)) + "]: " + str(self.pointers)
-        print "\tMbrPointers[" + str(len(self.mbrPointers)) + "]: " + str([str(_) for _ in self.mbrPointers])
-
     def isANode(self):
         pass
 
@@ -117,9 +111,8 @@ class MNode(MRtree):
         elif t == MbrPointer:
             super(MNode, self).insert(treeData)
 
-    def printRtree(self):
-        print "Node:"
-        super(MNode, self).printRtree()
+    def __str__(self):
+        return "[Node]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
 
     def isANode(self):
         return True
@@ -131,39 +124,38 @@ class MLeaf(MRtree):
     def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MLeaf,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
+    def __str__(self):
+        return "[Leaf]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
+
     def insert(self, mbrPointer):
         if self.elems == self.M:
             raise MRtreeAddChildError()
 
         super(MLeaf, self).insert(mbrPointer)
 
-    def printRtree(self):
-        print "Leaf:"
-        super(MLeaf, self).printRtree()
-
     def isANode(self):
         return False
 
-    def isATree(self):
+    def isALeaf(self):
         return True
 
 if __name__=="__main__":
     node = MNode(M = 20, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3,  pointers = [500, 100, 50])
     leaf = MLeaf(M = 8, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3, pointers = [100, 200, 300])
 
-    node.printRtree()
-    print "dumpMbr\t\t\t[" + str(len(node.dumpMbrs())) + "]: " + str(node.dumpMbrs())
-    print "dumpPointer\t[" + str(len(node.dumpPointers())) + "]: " + str(node.dumpPointers())
+    print(str(node))
+    print("dumpMbr\t\t\t[" + str(len(node.dumpMbrs())) + "]: " + str(node.dumpMbrs()))
+    print("dumpPointer\t[" + str(len(node.dumpPointers())) + "]: " + str(node.dumpPointers()))
 
-    leaf.printRtree()
-    print "dumpMbr\t\t\t[" + str(len(leaf.dumpMbrs())) + "]: " + str(leaf.dumpMbrs())
-    print "dumpPointer\t[" + str(len(leaf.dumpPointers())) + "]: " + str(leaf.dumpPointers())
+    print(str(leaf))
+    print("dumpMbr\t\t\t[" + str(len(leaf.dumpMbrs())) + "]: " + str(leaf.dumpMbrs()))
+    print("dumpPointer\t[" + str(len(leaf.dumpPointers())) + "]: " + str(leaf.dumpPointers()))
 
     node2 = MNode(M = 1, d = 2, offset = 10,  mbrs = [0.1, 0.1, 0.2, 0.2],  pointers = [1])
-    node2.printRtree()
-    print "dumpMbr\t\t\t[" + str(len(node2.dumpMbrs())) + "]: " + str(node2.dumpMbrs())
-    print "dumpPointer\t[" + str(len(node2.dumpPointers())) + "]: " + str(node2.dumpPointers())
+    print(str(node2))
+    print("dumpMbr\t\t\t[" + str(len(node2.dumpMbrs())) + "]: " + str(node2.dumpMbrs()))
+    print("dumpPointer\t[" + str(len(node2.dumpPointers())) + "]: " + str(node2.dumpPointers()))
 
     # Simboliza raiz vacia
     root  = MNode(M = 50, d = 2, offset = 0,  mbrs = [],  pointers = [])
-    root.printRtree()
+    print(str(root))
