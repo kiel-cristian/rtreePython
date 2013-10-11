@@ -30,11 +30,8 @@ class Rtree(RtreeApi):
     def insert(self, mbrPointer):      
         t0 = time()
 
-        print str(self.root)
-
         # Bajo por el arbol hasta encontrar una hoja adecuada
         while self.currentNode.isANode():
-            print str(self.currentNode)
             next = self.chooseTree(mbrPointer)
             self.seekNode(next) # cambia currentNode
 
@@ -42,8 +39,7 @@ class Rtree(RtreeApi):
             newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
             self.propagateSplit(newLeafMbrPointer) # propago hacia el padre el split
         else:
-            self.currentNode.insert(mbrPointer)
-            self.nfh.saveTree(self.currentNode) # se guarda nodo en disco
+            self.update(mbrPointer)
             self.adjust() # ajusta mbrs hasta la raiz
 
         t1 = time()
@@ -65,33 +61,22 @@ class Rtree(RtreeApi):
             if self.currentHeigth() > 0:
                 self.chooseParent() # cambia currentNode y sube un nivel del arbol
 
-                self.currentNode.updateChild(lastNode)
-                self.nfh.saveTree(self.currentNode)
+                self.updateChild(lastNode)
 
                 if self.needToSplit():
                     lastSplit = self.split(self.newNode(), lastSplit)
                     lastNode  = self.currentNode
                 else:
-                    self.adjust(self.currentNode.getMbrPointer())
+                    self.adjust()
                     break
             else:
                 # Nueva raiz
-                self.currentNode.updateChild(lastNode)
-                self.nfh.saveTree(self.currentNode)
+                self.updateChild(lastNode)
                 
                 lastSplit = self.split(self.newNode(), lastSplit)
-                self.currentNode.unsetRoot()
 
-                newRoot = self.newNode()
-                newRoot.setAsRoot()
-
-                newRoot.insert(lastSplit)
-                newRoot.insert(self.currentNode)
-
-                self.nfh.saveTree(newRoot)
-                self.root = newRoot
-
-        self.gotToRoot()
+                self.makeNewRoot(lastSplit)
+        self.goToRoot()
 
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
     def adjust(self):
@@ -105,9 +90,10 @@ class Rtree(RtreeApi):
 if __name__=="__main__":
     d = 2
     M = 100
-    rtree = Rtree(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    rtree = Rtree(d = d, M = 25, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
-    objects = [randomMbrPointer(d) for i in range(200)]
+    objects = [randomMbrPointer(d) for i in range(70)]
 
     for o in objects:
         rtree.insert(o)
+    print(rtree)

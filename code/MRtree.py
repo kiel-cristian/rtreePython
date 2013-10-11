@@ -117,8 +117,8 @@ class MRtree(object):
     def unsetRoot(self):
         self.root = False
 
-    def needsToSplit(self):
-        self.elems == self.M
+    def needToSplit(self):
+        return self.elems == self.M
 
     def isANode(self):
         pass
@@ -134,7 +134,7 @@ class MNode(MRtree):
     # Inserta un Arbol (Nodo u Hoja) o un MbrPointer, y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
     def insert(self, treeData):
         if self.elems == self.M:
-            raise MRtreeInsertError()
+            raise MRtreeAddChildError()
         t = type(treeData)
         if t == MNode or t == MLeaf:
             super(MNode, self).insert(treeData.getMbrPointer())

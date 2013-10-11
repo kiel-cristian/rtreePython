@@ -14,7 +14,7 @@ class PartitionAlgorithm():
   # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
   def partition(self, mbrParent, mbrPointerList):
     seedsIndex = self.selectSeeds(mbrParent, mbrPointerList)
-    restMbr = mList[:]
+    restMbr = mbrPointerList[:]
     restMbr.remove(mbrPointerList[seedsIndex[0]])
     restMbr.remove(mbrPointerList[seedsIndex[1]])
     seeds = [None, None]

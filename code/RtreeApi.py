@@ -1,3 +1,4 @@
+# encoding: utf-8
 from math import log
 import sys
 import struct
@@ -39,27 +40,26 @@ class RtreeApi(object):
         if reset:
             # Se construye una raiz vacia
             self.currentNode = self.newNode()
-            self.currentNode.setAsRoot()
 
             # Creo dos hojas para mantener invariante de la raiz
             leaf1 = self.newLeaf()
             leaf2 = self.newLeaf()
 
             # Guardo el nodo raiz en disco
-            self.saveTree()
+            self.save()
 
             # Guardo dos hojas de la raiz en disco
-            self.saveTree(leaf1)
-            self.saveTree(leaf2)
+            self.save(leaf1)
+            self.save(leaf2)
 
             # Agrego las hojas al nodo raiz
             self.currentNode.insert(leaf1)
             self.currentNode.insert(leaf2)
 
             # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
-            self.saveTree()
+            self.save()
 
-            self.makeRoot(0)
+            self.setAsRoot() # convertir nodo actual en raiz
         else:
             # Se carga la raiz de disco
             self.getRoot(initOffset)
@@ -75,6 +75,12 @@ class RtreeApi(object):
     def getMeanNodePartitions(self):
       ##TODO
       pass
+
+    # Fija punteros auxiliares de la estructura a la  raiz
+    def goToRoot(self):
+        self.cache = []
+        self.k     = 0
+        self.currentNode = self.root
 
     def setAsRoot(self, offset = 0):
         self.currentNode.setAsRoot(offset)
@@ -92,7 +98,9 @@ class RtreeApi(object):
         newRoot.insert(self.currentNode)
         newRoot.insert(childMbrPointer)
 
-        self.nfh.swapTrees(newRoot, childMbrPointer)
+        child = self.nfh.readTree(childMbrPointer.getPointer())
+
+        self.nfh.swapTrees(newRoot, child)
 
         self.currentNode = newRoot
         self.root        = newRoot
@@ -109,7 +117,7 @@ class RtreeApi(object):
         return self.nfh.d
 
     def needToSplit(self):
-        return self.currentNode.needsToSplit()
+        return self.currentNode.needToSplit()
 
     def newLeaf(self):
         return MLeaf(M = self.M(), d = self.d())
@@ -138,17 +146,21 @@ class RtreeApi(object):
         return self.k
 
     # Guarda el nodo actual en disco
-    def saveTree(self,tree = None):
-        if tree:
+    def save(self,tree = None):
+        if tree != None:
             self.nfh.saveTree(tree)
         else:
             self.nfh.saveTree(self.currentNode)
 
+    # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
+    def update(self, newChild):
+        self.currentNode.insert(newChild)
+        self.save()
         
     # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
     def updateChild(self, mbrPointer):
         self.currentNode.updateChild(mbrPointer)
-        self.saveTree()
+        self.save()
 
     # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, mbrPointer):
@@ -179,7 +191,7 @@ class RtreeApi(object):
         children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
 
         currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
-        partitionData = self.pa.partition(currentMbr, childrenMbrs + [mbrPointer]) # efectuamos la particion de elementos agregando el elemento a insertar
+        partitionData = self.pa.partition(currentMbr, children + [mbrPointer]) # efectuamos la particion de elementos agregando el elemento a insertar
 
         self.currentNode.setSplitData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newRtree.setSplitData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
@@ -189,3 +201,28 @@ class RtreeApi(object):
 
         treeMbrPointer = newRtree.getMbrPointer()
         return treeMbrPointer
+
+    # Advertencia : USAR SOLO CON ARBOLES PEQUEÑOS!
+    def __str__(self):
+        def toStr(tree, s = "", l = 0, i = 0):
+            s = s + "{ l:" + str(l) + ", i :" + str(i) + "} ->" + str(tree) + "\n"
+
+            if tree.isANode():
+                children = tree.getChildren()
+                for i in range(tree.elems):
+                    child = children[i]
+                    childTree = self.nfh.readTree(child.getPointer())
+                    s = toStr(childTree, s, l + 1, i)
+            else:
+                children = tree.getChildren()
+                for i in range(tree.elems):
+                    child = children[i]
+                    s = s + "{ child, l:" + str(l) + ", i :" + str(i) + "} ->" + str(child) + "\n"
+            return s
+        return toStr(self.currentNode)
+
+if __name__=="__main__":
+    d = 2
+    M = 100
+    rApi = RtreeApi(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    print(rApi)

@@ -52,7 +52,7 @@ class RtreePlus(RtreeApi):
                     self.insertR(mbrPointer = mbrPointer, parentNode = currentNode, currentNode = self.seekNode(next), level = level + 1)
         # Al encontrar una hoja
         else:
-            if currentNode.needsToSplit():
+            if currentNode.needToSplit():
                 newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
                 self.propagateSplit(node = parentNode, newMbrPointer = newLeafMbrPointer, oldMbrPointer = currentNode.getMbrPointer(), level = level)
             else:
@@ -66,7 +66,7 @@ class RtreePlus(RtreeApi):
 
             self.insertAnyLeaf(mbrPointer = mbrPointer, parentNode = currentNode, currentNode = self.seekNode(next))
         else:
-            if currentNode.needsToSplit():
+            if currentNode.needToSplit():
                 newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
                 self.propagateSplit(node = parentNode, newMbrPointer = newLeafMbrPointer, oldMbrPointer = currentNode.getMbrPointer(), level = level)
             else:
@@ -94,7 +94,7 @@ class RtreePlus(RtreeApi):
             node.updateChild(oldMbrPointer)
             self.nfh.saveTree(node)
 
-            if node.needsToSplit():
+            if node.needToSplit():
                 brotherMbrPointer = self.split(self.newNode(), newMbrPointer)
 
                 self.propagateSplit(node = parent, newMbrPointer = brotherMbrPointer, oldMbrPointer = node.getMbrPointer())

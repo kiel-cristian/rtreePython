@@ -97,22 +97,11 @@ class RtreeFileHandler(object):
 
     # Intercambia posicion de dos nodos en disco
     def swapTrees(self, firstTree, secondTree):
-        print "first"
-        print firstTree
-
-        print "second"
-        print secondTree
-
         firstOffset  = firstTree.getPointer()
         secondOffset = secondTree.getPointer()
 
         secondTree.setPointer(firstOffset)
         firstTree.setPointer(secondOffset)
-
-        print "first"
-        print firstTree
-        print "second"
-        print secondTree
 
         self.writeTree(firstTree)
         self.writeTree(secondTree)
@@ -129,6 +118,9 @@ class RtreeFileHandler(object):
 
             self.lastOffset = self.lastOffset + self.nodeBytes
             tree.offset = selectedOffset
+            self.writeTree(tree)
+        elif tree.offset == 0: #raiz
+            self.lastOffset = self.lastOffset + self.nodeBytes
             self.writeTree(tree)
         else:
             self.writeTree(tree)
