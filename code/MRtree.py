@@ -14,6 +14,12 @@ class MRtreeAddChildError(Exception):
     def __str__(self):
         return repr(self.value)
 
+class MRtreeUpdateChildError(Exception):
+    def __init__(self):
+        self.value = "Error updating child, child not found"
+    def __str__(self):
+        return repr(self.value)
+
 # MEMORY OBJECTS
 class MRtree(object):
     def __init__(self, d, M, offset = 0, mbrs = [], pointers = []):
@@ -54,11 +60,35 @@ class MRtree(object):
 
     # Añade un hijo al arbol actual (Una tupla (mbr, pointer))
     def insert(self, mbrPointer):
-        self.pointers = self.pointers + [mbrPointer.pointer]
+        pointer = mbrPointer.getPointer()
+        mbr     = mbrPointer.getMbr()
+
+        self.pointers = self.pointers + [pointer]
         self.elems = self.elems + 1
-        self.mbr.expand(mbrPointer.mbr)
-        self.mbrs  = self.mbrs + mbrPointer.mbr.dump()
+        self.mbr.expand(mbr)
+        self.mbrs  = self.mbrs + mbr.dump()
         self.mbrPointers = self.mbrPointers + [mbrPointer]
+
+    # Actualiza un hijo en base a puntero, y, actualiza el mbr del arbol
+    def updateChild(self, mbrPointer):
+        change = False
+        for i in range(self.elems):
+            m = self.mbrPointers[i]
+
+            if m.getPointer() == mbrPointer.getPointer():
+                self.mbrPointers[i] = mbrPointer
+                change = True
+                break
+
+        if not change:
+            raise MRtreeUpdateChildError()
+        self.mbr.expand(mbrPointer.getMbr())
+
+    def getPointer(self):
+        return self.offset
+
+    def setPointer(self, p):
+        self.offset = p
 
     # Esta estructura se ocupa para algoritmos del Rtree
     def getChildren(self):
@@ -159,3 +189,12 @@ if __name__=="__main__":
     # Simboliza raiz vacia
     root  = MNode(M = 50, d = 2, offset = 0,  mbrs = [],  pointers = [])
     print(str(root))
+
+    leaf2 = MLeaf(M=2, d = 2, offset = 0, mbrs = [0.2, 0.3, 0.2, 0.3]*2, pointers = [1, 20])
+    print(str(leaf2))
+
+    mbrPointer = MbrPointer(Mbr(2).setRange([0.2,0.3,0.2,0.5]), 20)
+    mbrPointer.pointer = 20
+
+    leaf2.updateChild(mbrPointer)
+    print(str(leaf2))

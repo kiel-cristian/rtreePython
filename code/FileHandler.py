@@ -95,18 +95,43 @@ class RtreeFileHandler(object):
     def deleteTree(self, data):
         pass
 
+    # Intercambia posicion de dos nodos en disco
+    def swapTrees(self, firstTree, secondTree):
+        print "first"
+        print firstTree
+
+        print "second"
+        print secondTree
+
+        firstOffset  = firstTree.getPointer()
+        secondOffset = secondTree.getPointer()
+
+        secondTree.setPointer(firstOffset)
+        firstTree.setPointer(secondOffset)
+
+        print "first"
+        print firstTree
+        print "second"
+        print secondTree
+
+        self.writeTree(firstTree)
+        self.writeTree(secondTree)
+
     # Guarda un arbol en disco
     def saveTree(self, tree):
-        if tree.offset < 0 or  len(self.availableOffsets) == 0:
-            # se trata de un arbol nuevo, o un arbol antiguo con algun error, por ende, se debe guardar al final del archivo
-            tree.offset = self.lastOffset
-            self.lastOffset = self.lastOffset + self.nodeBytes
-        else:
-            # se trata de un arbol que ya esta en disco, por ende, se guarda en una posicion disponible
-            tree.offset = self.availableOffsets[0]
-            self.availableOffsets = self.availableOffsets[1:]
+        if tree.offset < 0:
+            # nuevo nodo
+            if len(self.availableOffsets) > 0:
+                selectedOffset = self.availableOffsets[0]
+                self.availableOffsets = self.availableOffsets[1:]
+            else:
+                selectedOffset = self.lastOffset
 
-        self.writeTree(tree)
+            self.lastOffset = self.lastOffset + self.nodeBytes
+            tree.offset = selectedOffset
+            self.writeTree(tree)
+        else:
+            self.writeTree(tree)
 
     def writeTree(self, tree):
         t = type(tree)
@@ -236,10 +261,12 @@ def rtreeFileHandlerTest():
     offset = nfh.lastOffset
 
     # writing
+    print("Write")
     dataLeaf = MLeaf(M = nfh.M, d = d, offset = offset, mbrs = mbrs, pointers = pointers)
     nfh.writeTree(dataLeaf)
 
     # reading
+    print("Read")
     returnLeaf = nfh.readTree(offset)
 
     # comparing results
@@ -247,18 +274,42 @@ def rtreeFileHandlerTest():
     print(str(returnLeaf))
 
     # Testing polymorphic writing
+    print("Polymorphic Write")
     nfh.writeTree(dataLeaf)
     returnLeaf = nfh.readTree(offset)
     print(str(returnLeaf))
 
+    # Save Tree
+    print("Save Tree")
     nfh.saveTree(dataLeaf)
-    returnLeaf = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)
-    nfh.saveTree(dataNode)
-    returnNode = nfh.readTree(nfh.lastOffset - nfh.nodeBytes)
-
+    returnLeaf = nfh.readTree(dataLeaf.offset)
     print(str(returnLeaf))
-    print(str(returnNode))
 
+    newNode = MNode(M = nfh.M, d = nfh.d, offset = -1, mbrs = mbrs, pointers = pointers)
+
+    nfh.saveTree(newNode)
+    returnNewNode = nfh.readTree(nfh.lastOffset - nfh.nodeBytes) # ubicacion de newNode
+
+    print(str(newNode))
+    print(str(returnNewNode))
+
+    # Swap
+    print("Swap")
+    newNode2 = MNode(M = nfh.M, d = nfh.d, offset = -1, mbrs = mbrs, pointers = pointers)
+    nfh.saveTree(newNode2)
+
+    print(str(newNode))
+    print(str(newNode2))
+    nfh.swapTrees(newNode, newNode2)
+    print("memory swap")
+    print(str(newNode))
+    print(str(newNode2))
+    print("disc swap")
+    print(str(nfh.readTree(newNode.offset)))
+    print(str(nfh.readTree(newNode2.offset)))
+
+    # Available elements
+    print("Elements")
     print(nfh.elems)
 
 if __name__=="__main__":
