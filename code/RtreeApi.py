@@ -46,26 +46,23 @@ class RtreeApi(object):
             leaf2 = self.newLeaf()
 
             # Guardo el nodo raiz en disco
-            self.nfh.saveTree(self.currentNode)
+            self.saveTree()
 
             # Guardo dos hojas de la raiz en disco
-            self.nfh.saveTree(leaf1)
-            self.nfh.saveTree(leaf2)
+            self.saveTree(leaf1)
+            self.saveTree(leaf2)
 
             # Agrego las hojas al nodo raiz
             self.currentNode.insert(leaf1)
             self.currentNode.insert(leaf2)
 
             # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
-            self.nfh.saveTree(self.currentNode)
+            self.saveTree()
 
-            # Guardo una referencia al nodo raiz
-            self.root = self.currentNode
+            self.makeRoot(0)
         else:
             # Se carga la raiz de disco
-            self.currentNode = self.nfh.readTree(initOffset)
-            self.currentNode.setAsRoot(initOffset)
-            self.root = self.currentNode
+            self.getRoot(initOffset)
             
         #Metricas
         self.meanInsertionTime = None
@@ -78,6 +75,27 @@ class RtreeApi(object):
     def getMeanNodePartitions(self):
       ##TODO
       pass
+
+    def setAsRoot(self, offset = 0):
+        self.currentNode.setAsRoot(offset)
+        self.root = self.currentNode
+
+    def loadRoot(self, offset = 0):
+        self.currentNode = self.nfh.readTree(offset)
+        self.makeRoot(offset)
+
+    # Crea una nueva raiz recibiendo mbrPointer del hermano recien creado
+    def makeNewRoot(self, childMbrPointer):
+        newRoot = self.newNode()
+        newRoot.setAsRoot(0) # raiz siempre en comienzo del archivo
+
+        newRoot.insert(self.currentNode)
+        newRoot.insert(childMbrPointer)
+
+        self.nfh.swapTrees(newRoot, childMbrPointer)
+
+        self.currentNode = newRoot
+        self.root        = newRoot
 
     # Capacidad minima de nodos y hojas
     def m(self):
@@ -119,19 +137,27 @@ class RtreeApi(object):
     def currentHeigth(self):
         return self.k
 
+    # Guarda el nodo actual en disco
+    def saveTree(self,tree = None):
+        if tree:
+            self.nfh.saveTree(tree)
+        else:
+            self.nfh.saveTree(self.currentNode)
+
+        
+    # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
+    def updateChild(self, mbrPointer):
+        self.currentNode.updateChild(mbrPointer)
+        self.saveTree()
+
     # Baja un nivel en el arbol y prepara cache y nodo actual
-    def seekNode(self, pointer):
+    def seekNode(self, mbrPointer):
+        pointer = mbrPointer.getPointer()
         self.cache = [self.currentNode] + self.cache
         self.k = self.k + 1
 
         self.currentNode = self.nfh.readTree(pointer)
         return
-
-    # Volver a la raiz del arbol
-    def goToRoot(self):
-        self.cache = []
-        self.k = 0
-        self.currentNode = self.root
 
     # Escoger el padre del nodo actual
     def chooseParent(self):
@@ -142,11 +168,10 @@ class RtreeApi(object):
         else:
             raise RtreeHeightError("Ya esta en la raiz")
 
-    # Escoge un nodo u hoja para proceder con la insercion
+    # Escoge los nodos que intersectan con el mbr para proceder con la insercion
     def chooseTree(self, mbrPointer):
-        childrenMbrs   = self.currentNode.getChildren()
-        bestMbrPointer = self.sa.select(mbrPointer, childrenMbrs)
-        self.seekNode(bestMbrPointer.getPointer())
+        childrenMbrs = self.currentNode.getChildren()
+        return self.sa.select(mbrPointer, childrenMbrs)
 
     # Maneja split
     def split(self, newRtree, mbrPointer):
