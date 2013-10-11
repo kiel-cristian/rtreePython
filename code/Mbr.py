@@ -9,6 +9,12 @@ class Mbr(MbrApi):
     def __str__(self):
         return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
 
+    def getCenter(self):
+      mid = []
+      for d in range(self.d):
+        mid = mid + [(self.getMin(d) + self.getMax(d))/2]
+      return mid
+
     def getArea(self):
       area = -1.0
       for d in range(0, self.d):

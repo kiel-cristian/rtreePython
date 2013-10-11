@@ -28,3 +28,5 @@ class MbrApi():
     pass
   def areIntersecting(self,o):
     pass
+  def getCenter(self):
+    pass

@@ -28,6 +28,8 @@ class MbrPointer(MbrApi):
     return self.getMbr().deadSpace(mbrPointer.getMbr())
   def areIntersecting(self,mbrPointer):
     return self.getMbr().areIntersecting(mbrPointer.getMbr())
+  def getCenter(self):
+    return self.getMbr().getCenter()
 
 def randomMbrPointer(d):
   randomPoint = [random.random() for _ in range(d)]

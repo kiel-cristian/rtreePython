@@ -1,29 +1,38 @@
+import random
+from math import pi
 from MbrApi import *
 
+
 class RadialMbr(MbrApi):
-  def __init__(self, mbr, r):
-      self.mbr = mbr
-      self.r   = pointer
+  def __init__(self, d, point, r):
+      self.d      = d
+      self.center = point
+      self.r      = r
   def __str__(self):
-      return "[RadialMbr]{ mbr: " + str(self.mbr) + ", r: " + str(self.r) + "}"
+      return "[RadialMbr]{ center: " + str(self.center) + ", r: " + str(self.r) + "}"
   def getMin(self,d):
-    return self.mbr.getMin(d)
+    return self.center[d]
   def getMax(self,d):
-    return self.mbr.getMax(d)
+    return self.center[d] + self.r
   def getR(self):
     return self.r
-  def getMbr(self):
-    return self.mbr
-  def setRange(self, o):
-    self.mbr.setRange(o)
-    return self
+  def getCenter(self):
+    return self.center
+  def setCenter(self, p):
+    self.center = p
+  def setR(self,r):
+    self.r = r
   def distanceTo(self, mbrObject):
-    return self.getMbr().distanceTo(mbrObject.getMbr())
-  def returnExpandedMBR(self, mbrObject):
-    return self.getMbr().returnExpandedMBR(mbrObject.getMbr())
+    mbrCenter  = mbrObject.getCenter()
+    thisCenter = self.getCenter()
+    delta = 0
+    for d in range(self.d):
+      delta = delta + (mbrCenter[d] - thisCenter[d])**2
+    return sqrt(delta)
   def getArea(self):
-    return self.getMbr().getArea()
-  def deadSpace(self, mbrObject):
-    return self.getMbr().deadSpace(mbrObject.getMbr())
+    return pi*self.r**2/2
   def areIntersecting(self,mbrObject):
-    return self.getMbr().areIntersecting(mbrObject.getMbr())
+    return self.distanceTo(mbrObject) <= self.r
+
+def randomRadialMbr(d, r):
+  return RadialMbr([random.random() for _ in range(d)], r)
