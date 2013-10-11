@@ -1,6 +1,7 @@
 # encoding: utf-8
 import random
 from Mbr import *
+from MbrPointer import *
 
 class PartitionError(Exception):
   def __init__(self, value="partition error"):

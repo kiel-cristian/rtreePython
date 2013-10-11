@@ -14,9 +14,11 @@ class Rtree(RtreeApi):
 
     # Busqueda radial de objeto
     def search(self, r, mbrObject):
-        pass
-
         t0 = time()
+
+        results = []
+
+
       
         ##TODO
       

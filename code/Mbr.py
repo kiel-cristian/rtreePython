@@ -1,61 +1,4 @@
-import random
-from math import sqrt
-
-class MbrError(Exception):
-    def __init__(self):
-        self.value = "mbr error"
-    def __str__(self):
-        return repr(self.value)
-class MbrDataListLengthError(MbrError):
-    pass
-class MbrPointDimensionError(MbrError):
-    pass
-
-class MbrApi():
-  def getMin(self,d):
-    pass
-  def getMax(self,d):
-    pass
-  def distanceTo(self, o):
-    pass
-  def returnExpandedMBR(self, o):
-    pass
-  def getArea(self):
-    pass
-  def deadSpace(self, o):
-    pass
-  def setRange(self, o):
-    pass
-  def areIntersecting(self,o):
-    pass
-
-class MbrPointer(MbrApi):
-  def __init__(self, mbr, pointer):
-      self.mbr     = mbr
-      self.pointer = pointer
-  def __str__(self):
-      return "[MbrPointer]{ mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
-  def getMin(self,d):
-    return self.mbr.getMin(d)
-  def getMax(self,d):
-    return self.mbr.getMax(d)
-  def getPointer(self):
-    return self.pointer
-  def getMbr(self):
-    return self.mbr
-  def setRange(self, o):
-    self.mbr.setRange(o)
-    return self
-  def distanceTo(self, mbrPointer):
-    return self.getMbr().distanceTo(mbrPointer.getMbr())
-  def returnExpandedMBR(self, mbrPointer):
-    return self.getMbr().returnExpandedMBR(mbrPointer.getMbr())
-  def getArea(self):
-    return self.getMbr().getArea()
-  def deadSpace(self, mbrPointer):
-    return self.getMbr().deadSpace(mbrPointer.getMbr())
-  def areIntersecting(self,mbrPointer):
-    return self.getMbr().areIntersecting(mbrPointer.getMbr())
+from MbrApi import *
 
 class Mbr(MbrApi):
     def __init__(self, d, minV=0, maxV=1):
@@ -210,10 +153,6 @@ def listToRanges(d, n, coords):
         mbrCoords = []
 
     return dRanges
-
-def randomMbrPointer(d):
-  randomPoint = [random.random() for _ in range(d)]
-  return MbrPointer(Mbr(d).setPoint(randomPoint), int(randomPoint[0]*1000))
 
 if __name__ == "__main__":
     m = Mbr(2)

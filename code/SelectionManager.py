@@ -6,6 +6,7 @@ Created on 09-10-2013
 '''
 import random
 from Mbr import *
+from MbrPointer import *
 
 class SelectionError(Exception):
   def __init__(self, value="partition error"):
@@ -18,6 +19,9 @@ class SelectionManager():
     pass
 
 class RtreeSelection(SelectionManager):
+  def radialSelect(self, mbr, r, mbrPointersList):
+    pass
+
   def select(self,mbrPointer, mbrPointersList):
     minimum = None
     selected = None

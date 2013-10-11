@@ -1,5 +1,6 @@
 # encoding: utf-8
 from Mbr import *
+from MbrPointer import *
 from time import time
 
 class MRtreeLoadError(Exception):

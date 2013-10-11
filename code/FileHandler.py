@@ -3,7 +3,6 @@ import io
 import random
 import struct
 import sys
-
 from MRtree import *
 
 
