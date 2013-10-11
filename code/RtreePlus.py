@@ -10,7 +10,7 @@ class RtreePlus(RtreeApi):
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
         super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
-        self.sa = RtreePlusSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
+        self.sa = RtreePlusSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a interseccion de areas
 
     # Busqueda radial de objeto
     def search(self, r, mbrObject):
@@ -27,20 +27,10 @@ class RtreePlus(RtreeApi):
             self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
             self.searchCount = self.searchCount +1
 
-    def insert(self, mbrPointer):      
+    def insert(self, mbrPointer):
         t0 = time()
 
-        # Bajo por el arbol hasta encontrar una hoja adecuada
-        while self.currentNode.isANode():
-            self.chooseTree(mbrPointer) # cambia currentNode
-
-        if self.needToSplit():
-            newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
-            self.adjust(newLeafMbrPointer) # Inicio ajuste hacia arriba del RtreePlus
-        else:
-            self.currentNode.insert(mbrPointer)
-            self.nfh.saveTree(self.currentNode) # se guarda nodo en disco
-            self.goToRoot()
+        self.insertR(parentNode = self.currentNode, mbrPointer = mbrPointer, currentNode = self.currentNode, level = 0, parents = [])
 
         t1 = time()
         if self.meanInsertionTime == None: 
@@ -50,9 +40,75 @@ class RtreePlus(RtreeApi):
           self.insertionsCount = self.insertionsCount +1
         self.computeMeanNodes()
 
+    def insertR(self, mbrPointer, parentNode, currentNode, level, parents):
+        # Bajo por todos los nodos adecuados
+        if currentNode.isANode():
+            trees = self.chooseTree(currentNode, mbrPointer)
+
+            if len(trees) == 0:
+                self.insertAnyLeaf(mbrPointer, parentNode = parentNode, currentNode = currentNode, level = level)
+            else:
+                for next in trees:
+                    self.insertR(mbrPointer = mbrPointer, parentNode = currentNode, currentNode = self.seekNode(next), level = level + 1)
+        # Al encontrar una hoja
+        else:
+            if currentNode.needsToSplit():
+                newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
+                self.propagateSplit(node = parentNode, newMbrPointer = newLeafMbrPointer, oldMbrPointer = currentNode.getMbrPointer(), level = level)
+            else:
+                currentNode.insert(mbrPointer)
+                self.nfh.saveTree(currentNode)
+                self.adjust(node = parentNode, oldMbrPointer = currentNode.getMbrPointer(), level = level)
+
+    def insertAnyLeaf(self, mbrPointer, parentNode, currentNode, level):
+        if currentNode.isANode():
+            next = self.chooseAnyTree(currentNode)
+
+            self.insertAnyLeaf(mbrPointer = mbrPointer, parentNode = currentNode, currentNode = self.seekNode(next))
+        else:
+            if currentNode.needsToSplit():
+                newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
+                self.propagateSplit(node = parentNode, newMbrPointer = newLeafMbrPointer, oldMbrPointer = currentNode.getMbrPointer(), level = level)
+            else:
+                currentNode.insert(mbrPointer)
+                self.nfh.saveTree(currentNode)
+                self.adjust(node = parentNode, oldMbrPointer = currentNode.getMbrPointer(), level = level)
+
+    def chooseAnyTree(self,currentNode):
+        return self.sa.selectAny(currentNode)
+
+    # Ajusta Mbr de todos los nodos padre hasta la raiz
+    def adjust(self, node, oldMbrPointer, level):
+        if level > 0:
+            node.updateChild(oldMbrPointer)
+            self.saveTree(node)
+            parent = self.chooseParent(level)
+            self.adjust(node = parent, oldMbrPointer = node.getMbrPointer(), level = level - 1)
+
     # Analogo a insert, inserta nuevos nodos hacia arriba en RtreePlus, y sigue insertando en caso de desbordes
-    def adjust(self, nodeMbrPointer):
-        lastNodeMbrPointer = nodeMbrPointer
+    def propagateSplit(self, node, newMbrPointer, oldMbrPointer, level):
+        lastNodeMbrPointer = oldMbrPointer
+
+        if level > 0:
+            parent = self.chooseParent(level)
+            node.updateChild(oldMbrPointer)
+            self.nfh.saveTree(node)
+
+            if node.needsToSplit():
+                brotherMbrPointer = self.split(self.newNode(), newMbrPointer)
+
+                self.propagateSplit(node = parent, newMbrPointer = brotherMbrPointer, oldMbrPointer = node.getMbrPointer())
+            else:
+                node.insert(newMbrPointer)
+                self.nfh.saveTree(node)
+                self.adjust(node = parent, oldMbrPointer = node.getMbrPointer(), level = level - 1)
+
+
+            self.updateHere(oldMbrPointer)
+
+            if newMbrPointer != None and self.needToSplit():
+                brotherMbrPointer = self.split(self.newNode(), oldMbrPointer)
+                self.adjust(self, newMbrPointer = brotherMbrPointer, oldMbrPointer = self.getCurrentMbrPointer())
 
         while self.currentHeigth() > 0:
             self.chooseParent() # cambia currentNode y sube un nivel del arbol
