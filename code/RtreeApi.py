@@ -151,7 +151,7 @@ class RtreeApi(object):
         if self.currentNode.isANode():
             for s in  selections:
                 self.seekNode(s)
-                self.searchR(radialMbr, results)
+                results = results + self.searchR(radialMbr, results)
         else:
             for s in selections:
                 results = results + [s]
