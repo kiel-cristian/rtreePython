@@ -1,23 +1,24 @@
 # encoding: utf-8
 from Mbr import *
 from MbrPointer import *
+from RadialMbr import *
 from time import time
 
 class MRtreeLoadError(Exception):
     def __init__(self):
-        self.value = "Mbr length must match with pointers length"
+        self.value = "Largo del MBR debe coincidir con el de punteros"
     def __str__(self):
         return repr(self.value)
 
 class MRtreeAddChildError(Exception):
-    def __init__(self):
-        self.value = "Cannot add another child to Tree"
+    def __init__(self, value = "Tipos a insertar incorrectos"):
+        self.value = value
     def __str__(self):
         return repr(self.value)
 
 class MRtreeUpdateChildError(Exception):
     def __init__(self):
-        self.value = "Error updating child, child not found"
+        self.value = "Error actualizando hijo, no encontrado"
     def __str__(self):
         return repr(self.value)
 
@@ -159,7 +160,8 @@ class MLeaf(MRtree):
         return "[Leaf]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
 
     def insert(self, mbrPointer):
-        if self.elems == self.M:
+        t = type(mbrPointer)
+        if self.elems == self.M or t == MNode or t == MLeaf:
             raise MRtreeAddChildError()
 
         super(MLeaf, self).insert(mbrPointer)

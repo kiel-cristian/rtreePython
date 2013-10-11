@@ -128,11 +128,37 @@ class RtreeApi(object):
     def computeMeanNodes(self):
         ##TODO
         self.meanTotalNodes=0
-        self.meanInternalNodes = 0    
+        self.meanInternalNodes = 0 
 
     # Busqueda radial de objeto
-    def search(self, r, mbrObject):
-        pass
+    def search(self, radialMbr):
+        t0 = time()
+
+        results = []
+        results = self.searchR(radialMbr = radialMbr, results = results)
+      
+        t1 = time()
+        if self.meanSearchTime == None: 
+            self.meanSearchTime = t1-t0
+        else:
+            self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
+            self.searchCount = self.searchCount +1
+        return results
+
+    def searchR(self, radialMbr, results):
+        selections = self.chooseTreeForSearch(radialMbr)
+
+        if self.currentNode.isANode():
+            for s in  selections:
+                self.seekNode(s)
+                self.searchR(radialMbr, results)
+        else:
+            for s in selections:
+                results = results + [s]
+        
+        if self.currentHeigth() > 0:
+            self.chooseParent()
+        return results
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):
@@ -184,6 +210,11 @@ class RtreeApi(object):
     def chooseTree(self, mbrPointer):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.select(mbrPointer, childrenMbrs)
+
+    # Escoge los nodos segun criterio de busqueda
+    def chooseTreeForSearch(self, mbrO):
+        childrenMbrs = self.currentNode.getChildren()
+        return self.sa.radialSelect(mbrO, childrenMbrs)
 
     # Maneja split
     def split(self, newRtree, mbrPointer):

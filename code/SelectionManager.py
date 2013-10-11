@@ -19,8 +19,13 @@ class SelectionManager():
     pass
 
 class RtreeSelection(SelectionManager):
-  def radialSelect(self, mbr, r, mbrPointersList):
-    pass
+  def radialSelect(self, radialMbr, mList):
+    intersections = []
+    for m in mList:
+      mbr = m.getMbr()
+      if radialMbr.areIntersecting(mbr):
+        intersections = intersections + [m]
+    return intersections
 
   def select(self,mbrPointer, mbrPointersList):
     minimum = None

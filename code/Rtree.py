@@ -12,23 +12,6 @@ class Rtree(RtreeApi):
         super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
         self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
 
-    # Busqueda radial de objeto
-    def search(self, r, mbrObject):
-        t0 = time()
-
-        results = []
-
-
-      
-        ##TODO
-      
-        t1 = time()
-        if self.meanSearchTime == None: 
-            self.meanSearchTime = t1-t0
-        else:
-            self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
-            self.searchCount = self.searchCount +1
-
     def insert(self, mbrPointer):      
         t0 = time()
 
@@ -51,6 +34,7 @@ class Rtree(RtreeApi):
           self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
           self.insertionsCount = self.insertionsCount +1
         self.computeMeanNodes()
+        self.goToRoot()
 
     # Propaga el split hasta donde sea necesario
     def propagateSplit(self, splitMbrPointer):
@@ -78,7 +62,6 @@ class Rtree(RtreeApi):
                 lastSplit = self.split(self.newNode(), lastSplit)
 
                 self.makeNewRoot(lastSplit)
-        self.goToRoot()
 
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
     def adjust(self):
@@ -99,3 +82,8 @@ if __name__=="__main__":
     for o in objects:
         rtree.insert(o)
     print(rtree)
+
+    r = 0.8
+    print randomRadialMbr(d,r)
+    results = rtree.search(randomRadialMbr(d,r))
+    print results

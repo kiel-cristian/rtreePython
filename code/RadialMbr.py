@@ -35,4 +35,4 @@ class RadialMbr(MbrApi):
     return self.distanceTo(mbrObject) <= self.r
 
 def randomRadialMbr(d, r):
-  return RadialMbr([random.random() for _ in range(d)], r)
+  return RadialMbr(d, [random.random() for _ in range(d)], r)
