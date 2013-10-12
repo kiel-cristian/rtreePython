@@ -50,6 +50,12 @@ class RtreePlusSelection(SelectionManager):
       if mbrPointer.areIntersecting(mbr):
         selected = selected + [mbr]
     return selected
+
+  def selectAny(self, mbrPointersList):
+    for mbrP in mbrPointersList:
+      if mbrP.getPointer() > 0: # Puntero no nulo
+        return mbrP
+    raise SelectionError("No se encontro un nodo para seleccionar valido")
   
 def newMbrPointer(point):
   return MbrPointer(Mbr(2).setPoint(point), 0)
