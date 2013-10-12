@@ -83,7 +83,7 @@ if __name__=="__main__":
         rtree.insert(o)
     print(rtree)
 
-    r = 0.8
+    r = 0.25
     print randomRadialMbr(d,r)
     print "Search Results"
     results = rtree.search(randomRadialMbr(d,r))

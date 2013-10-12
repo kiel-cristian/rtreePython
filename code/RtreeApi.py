@@ -222,7 +222,7 @@ class RtreeApi(object):
         children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
 
         currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
-        partitionData = self.pa.partition(currentMbr, children + [mbrPointer]) # efectuamos la particion de elementos agregando el elemento a insertar
+        partitionData = self.pa.partition(currentMbr, children + [mbrPointer], self.m()) # efectuamos la particion de elementos agregando el elemento a insertar
 
         self.currentNode.setSplitData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newRtree.setSplitData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion

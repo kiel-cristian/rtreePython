@@ -12,21 +12,6 @@ class RtreePlus(RtreeApi):
         super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
         self.sa = RtreePlusSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a interseccion de areas
 
-    # Busqueda radial de objeto
-    def search(self, r, mbrObject):
-        pass
-
-        t0 = time()
-      
-        ##TODO
-      
-        t1 = time()
-        if self.meanSearchTime == None: 
-            self.meanSearchTime = t1-t0
-        else:
-            self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
-            self.searchCount = self.searchCount +1
-
     def insert(self, mbrPointer):
         t0 = time()
 
