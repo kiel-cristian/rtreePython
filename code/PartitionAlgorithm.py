@@ -77,6 +77,8 @@ class PartitionAlgorithm():
 
 # Particion usada por el R+ tree
 class SweepPartition(PartitionAlgorithm):
+  def partition(self, mbrParent, mbrPointerList, m):
+    pass
   def selectSeeds(self, mbrParent, mbrPointerList):
     pass
   def partitionFromSeeds(self, seeds, restMbr, m):
