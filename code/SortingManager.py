@@ -1,5 +1,6 @@
 # encoding: utf-8
 from random import random
+from random import shuffle
 
 class SortingManager():
   # compare(a,b): funcion que retorna -1, 0, 1 si a es menor, igual, o mayer que b respectivamente
@@ -26,6 +27,7 @@ class SortingManager():
         [elements[1]] + [elements[0]]
 
     div = l/2
+    shuffle(elements) 
     firstPartition  = self.mergesort(compare, elements[0:div])
     secondPartition = self.mergesort(compare, elements[div:])
 
