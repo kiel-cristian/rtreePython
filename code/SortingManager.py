@@ -1,59 +1,78 @@
 # encoding: utf-8
-from random import random
-from random import shuffle
+import random
 
 class SortingManager():
-  # compare(a,b): funcion que retorna -1, 0, 1 si a es menor, igual, o mayer que b respectivamente
   def quicksort(self, compare, elements):
+    self.cost = 0
+    return self.quicksortI(compare, elements)
+
+  def mergesort(self, compare, elements):
+    self.cost = 0
+    return self.mergesortI(compare, elements)
+
+  def getCost(self):
+    return self.cost
+
+  # compare(a,b): funcion que retorna -1, 0, 1 si a es menor, igual, o mayer que b respectivamente
+  def quicksortI(self, compare, elements):
     l = len(elements)
     if l <= 1:
       return elements
 
-    pivot = elements[int(random() * l)]
+    pivot = elements[int(random.random() * l)]
 
-    firstPartition  = [_ for _ in elements if compare(_, pivot) <= 0] # elementos menores o iguales que pivot
-    secondPartition = [_ for _ in elements if compare(_, pivot) > 0]  # elementos mayores que el pivote
+    firstPartition  = []
+    secondPartition = []
 
-    return self.quicksort(compare, firstPartition) + self.quicksort(compare, secondPartition)
+    for e in elements:
+      self.cost = self.cost + 1
+      if compare(e, pivot) <= 0:
+        firstPartition  = firstPartition  + [e]
+      else:
+        secondPartition = secondPartition + [e]
 
-  def mergesort(self, compare, elements):
+    return self.quicksortI(compare, firstPartition) + self.quicksortI(compare, secondPartition)
+
+  def mergesortI(self, compare, elements):
     l = len(elements)
     if l<= 1:
       return elements
     elif l == 2:
-      if compare(elements[0], elements[1]) < 0:
+      self.cost = self.cost + 1
+      if compare(elements[0], elements[1]) <= 0:
         return elements
       else:
-        [elements[1]] + [elements[0]]
+        return [elements[1]] + [elements[0]]
 
     div = l/2
-    shuffle(elements) 
-    firstPartition  = self.mergesort(compare, elements[0:div])
-    secondPartition = self.mergesort(compare, elements[div:])
+    random.shuffle(elements)
+    self.cost = self.cost + div
+
+    firstPartition  = self.mergesortI(compare, elements[0:div])
+    secondPartition = self.mergesortI(compare, elements[div:])
 
     # merge
     merge = []
     fl = div
     sl = l - div
 
-    if fl < sl:
-      minl = fl
-    else:
-      minl = sl
-
-    for i in range(minl):
-      if compare(firstPartition[0], secondPartition[0]) < 0:
-        merge = merge + [firstPartition[0]]
-        firstPartition = firstPartition[1:]
-      else:
-        merge = merge + [secondPartition[0]]
-        secondPartition = secondPartition[1:]
-
-    if len(firstPartition) > 0:
-      merge = merge + firstPartition
-    if len(secondPartition) > 0:
-      merge = merge + secondPartition
-
+    while fl or sl > 0:
+      if fl > 0 and sl > 0:
+        self.cost = self.cost + 1
+        if compare(firstPartition[0], secondPartition[0]) < 0:
+          merge = merge + [firstPartition[0]]
+          firstPartition = firstPartition[1:]
+          fl = fl -1
+        else:
+          merge = merge + [secondPartition[0]]
+          secondPartition = secondPartition[1:]
+          sl = sl -1
+      elif fl > 0:
+        merge = merge + firstPartition
+        break
+      elif sl > 0:
+        merge = merge + secondPartition
+        break
     return merge
 
 if __name__ == "__main__":
@@ -70,8 +89,12 @@ if __name__ == "__main__":
   a = [1,2,3,4,5,6,0]
   
   print(sm.quicksort(cList, a))
+  print(sm.getCost())
   print(sm.mergesort(cList, a))
+  print(sm.getCost())
   print(a)
 
   print(sm.quicksort(cList, [2,1]))
+  print(sm.getCost())
   print(sm.mergesort(cList, [2,1]))
+  print(sm.getCost())
