@@ -19,9 +19,15 @@ class RtreeApi(object):
     # maxE       : cantidad maxima de elementos que almacenara el Rtree
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
-    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
+    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0, rPlus = False):
+        if rPlus:
+            dataFile = 'r+tree'
+        else:
+            dataFile = 'rtree'
+
+        dataFile = 'rtree'
         self.nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
-                                     dataFile        = str(type(self)) + str(d) + "D.bin",
+                                     dataFile        = dataFile + str(d) + "D.bin",
                                      d               = d,
                                      M               = M,
                                      initOffset      = initOffset)
@@ -53,8 +59,8 @@ class RtreeApi(object):
             self.save(leaf2)
 
             # Agrego las hojas al nodo raiz
-            self.currentNode.insert(leaf1)
-            self.currentNode.insert(leaf2)
+            self.currentNode.insert(leaf1.getMbrPointer())
+            self.currentNode.insert(leaf2.getMbrPointer())
 
             # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
             self.save()
@@ -95,7 +101,7 @@ class RtreeApi(object):
         newRoot = self.newNode()
         newRoot.setAsRoot(0) # raiz siempre en comienzo del archivo
 
-        newRoot.insert(self.currentNode)
+        newRoot.insert(self.currentNode.getMbrPointer())
         newRoot.insert(childMbrPointer)
 
         child = self.nfh.readTree(childMbrPointer.getPointer())

@@ -69,7 +69,7 @@ class MRtree(object):
         self.elems = self.elems + 1
         self.mbr.expand(mbr)
         self.mbrs  = self.mbrs + mbr.dump()
-        self.mbrPointers = self.mbrPointers + [mbrPointer]
+        self.mbrPointers = self.mbrPointers + [MbrPointer(mbr, pointer)]
 
     # Actualiza un hijo en base a puntero, y, actualiza el mbr del arbol
     def updateChild(self, mbrPointer):
@@ -133,16 +133,6 @@ class MNode(MRtree):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
         self.partitionCount = 0
 
-    # Inserta un Arbol (Nodo u Hoja) o un MbrPointer, y actualizo las estructuras internas del nodo actual para agregar un nuevo hijo arbol
-    def insert(self, treeData):
-        if self.elems == self.M:
-            raise MRtreeAddChildError()
-        t = type(treeData)
-        if t == MNode or t == MLeaf:
-            super(MNode, self).insert(treeData.getMbrPointer())
-        elif t == MbrPointer:
-            super(MNode, self).insert(treeData)
-
     def __str__(self):
         return "[Node]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
 
@@ -158,13 +148,6 @@ class MLeaf(MRtree):
 
     def __str__(self):
         return "[Leaf]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
-
-    def insert(self, mbrPointer):
-        t = type(mbrPointer)
-        if self.elems == self.M or t == MNode or t == MLeaf:
-            raise MRtreeAddChildError()
-
-        super(MLeaf, self).insert(mbrPointer)
 
     def isANode(self):
         return False

@@ -22,8 +22,7 @@ class RtreeSelection(SelectionManager):
   def radialSelect(self, radialMbr, mList):
     intersections = []
     for m in mList:
-      mbr = m.getMbr()
-      if radialMbr.areIntersecting(mbr):
+      if radialMbr.areIntersecting(m):
         intersections = intersections + [m]
     return intersections
 

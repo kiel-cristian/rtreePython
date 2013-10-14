@@ -9,6 +9,17 @@ class Mbr(MbrApi):
     def __str__(self):
         return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
 
+    def cutOnDimension(self, dToCut, cut):
+        firstCopy  = self
+        secondCopy = self
+
+        for i in range(self.d):
+            if i == dToCut:
+                firstCopy.setMax(i, cut)
+                secondCopy.setMin(i, cut)
+        return [firstCopy, secondCopy]
+
+
     def getCenter(self):
       mid = []
       for d in range(self.d):

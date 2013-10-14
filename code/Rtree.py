@@ -16,7 +16,7 @@ class Rtree(RtreeApi):
         t0 = time()
 
         # Bajo por el arbol hasta encontrar una hoja adecuada
-        while self.currentNode.isANode():
+        while not self.currentNode.isALeaf():
             next = self.chooseTree(mbrPointer)
             self.seekNode(next) # cambia currentNode
 
@@ -37,17 +37,15 @@ class Rtree(RtreeApi):
         self.goToRoot()
 
     # Propaga el split hasta donde sea necesario
-    def propagateSplit(self, splitMbrPointer):
-        
+    def propagateSplit(self, splitMbrPointer):        
         lastSplit = splitMbrPointer
         lastNode = self.currentNode
 
         while self.currentHeigth() >= 0:
-
             if self.currentHeigth() > 0:
                 self.chooseParent() # cambia currentNode y sube un nivel del arbol
 
-                self.updateChild(lastNode)
+                self.updateChild(lastNode.getMbrPointer())
 
                 if self.needToSplit():
                     lastSplit = self.split(self.newNode(), lastSplit)
@@ -57,7 +55,7 @@ class Rtree(RtreeApi):
                     break
             else:
                 # Nueva raiz
-                self.updateChild(lastNode)
+                self.updateChild(lastNode.getMbrPointer())
                 
                 lastSplit = self.split(self.newNode(), lastSplit)
 
@@ -84,8 +82,8 @@ if __name__=="__main__":
     print(rtree)
 
     r = 0.25
-    print randomRadialMbr(d,r)
-    print "Search Results"
+    print(randomRadialMbr(d,r))
+    print("Search Results")
     results = rtree.search(randomRadialMbr(d,r))
     for r in results:
-        print (str(r))
+        print(str(r))

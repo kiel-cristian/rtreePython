@@ -182,40 +182,47 @@ class SweepPartition(PartitionAlgorithm):
         return c
     return compare
 
-  def partition(self, mbrParent, mbrPointerList, m):
+  # La particion se basa en lo siguiente:
+  # Determina un corte utilizando un orden parcial de los mbrs para determinada dimension d, donde el coste de ordenar la lista en base a dimension
+  # es el menor coste. Luego, contruye dos particiones en base a este corte dimensional, si se trata de un nodo hoja, los elementos deben reinsertarse
+  # en toda particion donde intersecten
+  def partition(self, mbrParent, mbrPointerList, m, leafMode = False):
     dimensionSortedList = []
-    minCost = len(mbrPointerList)**2 + 1 # cota superior cuadratica
+    minCostDim = len(mbrPointerList)**2 + 1 # cota superior cuadratica
     sorter = SortingManager()
 
     for d in range(mbrParent.d):
       dimensionSortedList = dimensionSortedList + [sorter.mergesort(self.mbrCompare(d), mbrPointerList)]
-      if sorter.cost < minCost:
-        minCost = d
+      if sorter.cost < minCostDim:
+        minCostDim = d
 
-    sortedList = dimensionSortedList[minCost]
-    firstPartition  = sortedList[0:m]
-    secondPartition = sortedList[m:]
+    sortedList = dimensionSortedList[minCostDim]
+    dimCut = (sortedList[0].getMin(minCostDim) + sortedList[m].getMin(minCostDim))/2 #corte dimensional
+    seedMbrs = mbrParent.cutOnDimension(minCostDim, dimCut) # mbr de las dos nuevas particiones
 
-    mbrs = [firstPartition[0].getMbr(), secondPartition[0].getMbr()]
-    for m in firstPartition[1:]:
-      mbrs[0].expand(m.getMbr())
+    if leafMode:
+      firstPartition  = []
+      secondPartition = []
 
-    for m in secondPartition[1:]:
-      mbrs[1].expand(m.getMbr())
+      fPLen = 0
+      sPLen = 0
 
-    return [[mbrs[0]] + firstPartition, [mbrs[1]] + secondPartition]
+      for m in mbrPointerList:
+        if seedMbrs[0].areIntersecting(m):
+          firstPartition = firstPartition + [m]
+          fPLen = fPLen + 1
+        elif seedMbrs[1].areIntersecting(m):
+          secondPartition = secondPartition + [m]
+          sPLen = sPLen + 1
 
-  def partitionFromSeeds(self, seeds, restMbr, m):
-    self.partitions = [[None, seeds[0]], [None, seeds[1]]]
-    self.seeds = seeds
+      maxL = len(mbrPointerList)
+      if fPLen == maxL or sPLen == maxL:
+        raise PartitionError("Particion Sweep no separo de forma adecuada los elementos en las hojas")
+    else:
+      firstPartition  = sortedList[0:m]
+      secondPartition = sortedList[m:]
 
-    i = 1
-    for m in restMbr:
-      if i < m:
-        self.addToFirstPartition(m)
-      else:
-        self.addToSecondPartition(m)
-      i = i + 1
+    return [[seedMbrs[0]] + firstPartition, [seedMbrs[1]] + secondPartition]
 
 def testPartition(partition, parent, mList):
   seedsIndex = partition.selectSeeds(parent, mList)
@@ -253,3 +260,4 @@ if __name__ == "__main__":
 
   print("Sweep")
   print([ str(_) for e in SweepPartition().partition(parent, mList, 2) for _ in e])
+  print([ str(_) for e in SweepPartition().partition(parent, mList, 2, True) for _ in e])
