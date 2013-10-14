@@ -10,15 +10,15 @@ class Mbr(MbrApi):
         return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
 
     def cutOnDimension(self, dToCut, cut):
-        firstCopy  = self
-        secondCopy = self
+        dumpCopy = self.dump()[:]
+        firstCopy  = Mbr(self.d).setRange(dumpCopy)
+        secondCopy = Mbr(self.d).setRange(dumpCopy)
 
         for i in range(self.d):
             if i == dToCut:
                 firstCopy.setMax(i, cut)
                 secondCopy.setMin(i, cut)
         return [firstCopy, secondCopy]
-
 
     def getCenter(self):
       mid = []
@@ -152,9 +152,9 @@ class Mbr(MbrApi):
         mMax = self.getMax(d)
         eMin = mbr.getMin(d)
         eMax = mbr.getMax(d)
-        if ((mMax < eMax) & (mMin < eMin)) | ((mMin > eMin) & (mMax > eMax)):
-          return True
-      return False
+        if(not((eMin >= mMin and eMin <= mMax) or (eMax >= mMin and eMax <= mMax))):
+          return False
+      return True
 
 def listToRanges(d, n, coords):
     helper = Mbr(d)
@@ -210,3 +210,9 @@ if __name__ == "__main__":
     print(m.returnExpandedMBR(m2).getArea())
     print(m.getArea() + m2.getArea())
 
+    m3 = Mbr(2)
+    print(m3.dump())
+    cuts = m3.cutOnDimension(0,0.25)
+    print(cuts[0])
+    print(cuts[1])
+    print(m3.dump())

@@ -170,6 +170,9 @@ class CuadraticPartition(PartitionAlgorithm):
 
 # Particion usada por el R+ tree
 class SweepPartition(PartitionAlgorithm):
+  def __init__(self):
+    self.sorter = SortingManager()
+
   def mbrCompare(self, d):
     def compare(first, second):
         firstDMin  = first.getMbr().getMin(d)
@@ -189,15 +192,14 @@ class SweepPartition(PartitionAlgorithm):
   def partition(self, mbrParent, mbrPointerList, m, leafMode = False):
     dimensionSortedList = []
     minCostDim = len(mbrPointerList)**2 + 1 # cota superior cuadratica
-    sorter = SortingManager()
 
     for d in range(mbrParent.d):
-      dimensionSortedList = dimensionSortedList + [sorter.mergesort(self.mbrCompare(d), mbrPointerList)]
-      if sorter.cost < minCostDim:
+      dimensionSortedList = dimensionSortedList + [self.sorter.mergesort(self.mbrCompare(d), mbrPointerList)]
+      if self.sorter.cost < minCostDim:
         minCostDim = d
 
     sortedList = dimensionSortedList[minCostDim]
-    dimCut = (sortedList[0].getMin(minCostDim) + sortedList[m].getMin(minCostDim))/2 #corte dimensional
+    dimCut = (sortedList[m-1].getMin(minCostDim) + sortedList[m].getMin(minCostDim))/2 #corte dimensional
     seedMbrs = mbrParent.cutOnDimension(minCostDim, dimCut) # mbr de las dos nuevas particiones
 
     if leafMode:
@@ -207,15 +209,16 @@ class SweepPartition(PartitionAlgorithm):
       fPLen = 0
       sPLen = 0
 
-      for m in mbrPointerList:
+      for m in sortedList:
         if seedMbrs[0].areIntersecting(m):
           firstPartition = firstPartition + [m]
           fPLen = fPLen + 1
-        elif seedMbrs[1].areIntersecting(m):
+        if seedMbrs[1].areIntersecting(m):
           secondPartition = secondPartition + [m]
           sPLen = sPLen + 1
 
       maxL = len(mbrPointerList)
+
       if fPLen == maxL or sPLen == maxL:
         raise PartitionError("Particion Sweep no separo de forma adecuada los elementos en las hojas")
     else:
@@ -246,7 +249,7 @@ def newMbrPointer(point):
 if __name__ == "__main__":
   parent = Mbr(2)
   parent.setPoint([0, 1])
-  mList = [newMbrPointer([0, 0.6]), newMbrPointer([0.5, 0.6]), newMbrPointer([0.5, 1]), newMbrPointer([0.5, 0.3]), newMbrPointer([1, 0.6]), newMbrPointer([0.7, 0])]
+  mList  = [newMbrPointer([0, 0.6]), newMbrPointer([0.5, 0.6]), newMbrPointer([0.5, 1]), newMbrPointer([0.5, 0.3]), newMbrPointer([1, 0.6]), newMbrPointer([0.7, 0])]
   print([str(_) for _ in mList])
   parent.setRange([0, 1, 0, 1])
 
@@ -260,4 +263,5 @@ if __name__ == "__main__":
 
   print("Sweep")
   print([ str(_) for e in SweepPartition().partition(parent, mList, 2) for _ in e])
-  print([ str(_) for e in SweepPartition().partition(parent, mList, 2, True) for _ in e])
+  print([ str(_) for _ in SweepPartition().partition(parent, mList, 2, True)[0]])
+  print([ str(_) for _ in SweepPartition().partition(parent, mList, 2, True)[1]])
