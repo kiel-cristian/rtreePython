@@ -152,15 +152,15 @@ class RtreeApi(object):
         return results
 
     def searchR(self, radialMbr, results):
-        selections = self.chooseTreeForSearch(radialMbr)
-
         if self.currentNode.isANode():
+            selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
                 results = results + self.searchR(radialMbr, results)
         else:
-            for s in selections:
-                results = results + [s]
+            for c in self.currentNode.getChildren():
+                if radialMbr.areIntersecting(c):
+                    results = results + [c]
         
         if self.currentHeigth() > 0:
             self.chooseParent()

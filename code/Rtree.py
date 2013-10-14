@@ -84,6 +84,8 @@ if __name__=="__main__":
     r = 0.25
     print(randomRadialMbr(d,r))
     print("Search Results")
-    results = rtree.search(randomRadialMbr(d,r))
-    for r in results:
-        print(str(r))
+    randomMbr = randomRadialMbr(d,r)
+    results = rtree.search(randomMbr)
+    for m in results:
+        print("d: " + str(randomMbr.distanceTo(m)))
+        print("\t" + (str(m)))
