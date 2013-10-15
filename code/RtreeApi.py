@@ -7,8 +7,8 @@ from MRtree import *
 from PartitionAlgorithm import *
 
 #  ERRORS
-class RtreeHeightError(Exception):
-    def __init__(self, value = "error de altura"):
+class RtreeError(Exception):
+    def __init__(self, value):
         self.value = value
     def __str__(self):
         return (str(type(self))) + " " + repr(self.value)
@@ -83,7 +83,7 @@ class RtreeApi(object):
                 for i in range(tree.elems):
                     child = children[i]
                     childTree = self.nfh.readTree(child.getPointer())
-                    s = toStr(childTree, s, l + 1, i)
+                    s = s + toStr(childTree, s, l + 1, i)
             else:
                 children = tree.getChildren()
                 for i in range(tree.elems):
@@ -220,7 +220,7 @@ class RtreeApi(object):
             self.cache = self.cache[0:self.k-1]
             self.k = self.k - 1
         else:
-            raise RtreeHeightError("Ya esta en la raiz")
+            raise RtreeError("Ya esta en la raiz")
 
     # Escoge los nodos que intersectan con el mbr para proceder con la insercion
     def chooseTree(self, mbrPointer):

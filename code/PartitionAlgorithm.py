@@ -111,7 +111,7 @@ class LinealPartition(PartitionAlgorithm):
     # m : minimo de nodos en cada particion
     random.shuffle(restMbr)
 
-    self.partitions = [[None, seeds[0]], [None, seeds[1]]]
+    self.partitions = [[seeds[0].getMbr(), seeds[0]], [seeds[1].getMbr(), seeds[1]]]
     self.seeds = seeds
     self.pElems = [1,1]
 
@@ -148,7 +148,7 @@ class CuadraticPartition(PartitionAlgorithm):
     return seedsIndex
 
   def partitionFromSeeds(self, seeds, restMbr, m):
-    self.partitions = [[None, seeds[0]], [None, seeds[1]]]
+    self.partitions = [[seeds[0].getMbr(), seeds[0]], [seeds[1].getMbr(), seeds[1]]]
     self.seeds = seeds
     self.pElems = [1,1]
 
