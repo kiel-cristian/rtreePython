@@ -9,10 +9,34 @@ class Rtree(RtreeApi):
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
-        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
+        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "r+tree")
         self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
 
-    def insert(self, mbrPointer):      
+    def resetRoot(self):
+        # Se construye una raiz vacia
+        self.currentNode = self.newNode()
+
+        # Creo dos hojas para mantener invariante de la raiz
+        leaf1 = self.newLeaf()
+        leaf2 = self.newLeaf()
+
+        # Guardo el nodo raiz en disco
+        self.save()
+
+        # Guardo dos hojas de la raiz en disco
+        self.save(leaf1)
+        self.save(leaf2)
+
+        # Agrego las hojas al nodo raiz
+        self.currentNode.insert(leaf1.getMbrPointer())
+        self.currentNode.insert(leaf2.getMbrPointer())
+
+        # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
+        self.save()
+
+        self.setAsRoot() # convertir nodo actual en raiz
+
+    def insert(self, mbrPointer):
         t0 = time()
 
         # Bajo por el arbol hasta encontrar una hoja adecuada
@@ -25,7 +49,7 @@ class Rtree(RtreeApi):
             self.propagateSplit(newLeafMbrPointer) # propago hacia el padre el split
         else:
             self.update(mbrPointer)
-            self.adjust() # ajusta mbrs hasta la raiz
+            self.propagateAdjust() # ajusta mbrs hasta la raiz
 
         t1 = time()
         if self.meanInsertionTime == None: 
@@ -36,39 +60,7 @@ class Rtree(RtreeApi):
         self.computeMeanNodes()
         self.goToRoot()
 
-    # Propaga el split hasta donde sea necesario
-    def propagateSplit(self, splitMbrPointer):        
-        lastSplit = splitMbrPointer
-        lastNode = self.currentNode
 
-        while self.currentHeigth() >= 0:
-            if self.currentHeigth() > 0:
-                self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-                self.updateChild(lastNode.getMbrPointer())
-
-                if self.needToSplit():
-                    lastSplit = self.split(self.newNode(), lastSplit)
-                    lastNode  = self.currentNode
-                else:
-                    self.adjust()
-                    break
-            else:
-                # Nueva raiz
-                self.updateChild(lastNode.getMbrPointer())
-                
-                lastSplit = self.split(self.newNode(), lastSplit)
-
-                self.makeNewRoot(lastSplit)
-
-    # Ajusta mbrs de todos los nodos hasta llegar a la raiz
-    def adjust(self):
-        while self.currentHeigth() > 0:
-            childMbrPointer = self.currentNode.getMbrPointer()
-
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
 if __name__=="__main__":
     d = 2

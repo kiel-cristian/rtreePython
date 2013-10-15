@@ -57,18 +57,19 @@ class MRtree(object):
         return "[Tree]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
 
     # Setea la info proveniendo de un split dentro del nodo u hoja
-    def setSplitData(self, thisNodeMbr, childrenMbrPointers):
-        self.mbr = thisNodeMbr
-        self.mbrPointers = childrenMbrPointers
+    def setData(self, thisNodeMbr, childrenMbrPointers):
+        self.mbr = Mbr(self.d).setRange(thisNodeMbr.dump())
+        self.mbrPointers = childrenMbrPointers[:]
 
         self.elems = 0
         self.pointers  = []
+        self.mbrs      = []
         self.childMbrs = []
-        self.mbrPointers = childrenMbrPointers
+        self.mbrPointers = childrenMbrPointers[:]
 
         for child in childrenMbrPointers:
-            self.elems = self.elems + 1
-            self.mbrs     = self.mbrs + [child.getMbr()]
+            self.elems    = self.elems + 1
+            self.mbrs     = self.mbrs + child.getMbr().dump()
             self.pointers = self.pointers + [child.getPointer()]
 
     # Añade un hijo al arbol actual (Una tupla (mbr, pointer))
@@ -195,3 +196,13 @@ if __name__=="__main__":
 
     leaf2.updateChild(mbrPointer)
     print(str(leaf2))
+    print("setData")
+    print("leaf")
+    print(leaf.mbrs)
+    print(leaf)
+    leaf2.setData(leaf.getMbr(), leaf.getChildren())
+    print("leaf2")
+    print(str(leaf2))
+    print(leaf2.pointers)
+    print(leaf2.mbrs)
+    print(leaf2)
