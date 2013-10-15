@@ -60,12 +60,14 @@ if __name__=="__main__":
     M = 100
     rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
-    objects = [randomMbrPointer(d) for i in range(40)]
+    objects = [randomMbrPointer(d) for i in range(1000)]
     print("Data generada")
 
     for o in objects:
         rtree.insert(o)
-    print(rtree)
+
+    # print(rtree)
+    rtree.printTree()
 
     r = 0.25
     print(randomRadialMbr(d,r))

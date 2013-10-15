@@ -79,18 +79,35 @@ class RtreeApi(object):
             s = s + "{ l:" + str(l) + ", i :" + str(i) + "} ->" + str(tree) + "\n"
 
             if tree.isANode():
+                i = 0
                 children = tree.getChildren()
-                for i in range(tree.elems):
-                    child = children[i]
+                for child in children:
                     childTree = self.nfh.readTree(child.getPointer())
                     s = s + toStr(childTree, s, l + 1, i)
+                    i = i + 1
             else:
+                i = 0
                 children = tree.getChildren()
-                for i in range(tree.elems):
-                    child = children[i]
+                for child in children:
                     s = s + "{ child, l:" + str(l) + ", i :" + str(i) + "} ->" + str(child) + "\n"
+                    i = i + 1
             return s
         return toStr(self.currentNode)
+
+    def printTree(self):
+        self.printRec(self.currentNode)
+
+    def printRec(self, currentNode):
+        print(str(currentNode))
+
+        if currentNode.isANode():
+            for child in currentNode.getChildren():
+                self.printRec(self.nfh.readTree(child.getPointer()))
+        else:
+            i = 0
+            for child in currentNode.getChildren():
+                print("i: " + str(i) + " " + (str(child)))
+                i =  i + 1
 
     def getMeanNodePartitions(self):
       ##TODO
