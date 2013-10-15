@@ -48,6 +48,7 @@ class RtreeApi(object):
         self.meanInternalNodes = 0
         self.meanSearchTime = None
         self.searchCount = 0
+        self.splitCount = 0
 
     def resetRoot(self):
         # Se construye una raiz vacia
@@ -93,8 +94,14 @@ class RtreeApi(object):
         return toStr(self.currentNode)
 
     def getMeanNodePartitions(self):
-      ##TODO
-      pass
+      childrens = self.currentNode.getChildren()
+      acc = 0
+      for node in childrens:
+        self.seekNode(node)
+        acc = acc + self.currentNode.getMeanNodePartitions()
+        
+        self.goToRoot()
+      return acc/len(childrens)
 
     # Fija punteros auxiliares de la estructura a la  raiz
     def goToRoot(self):
@@ -137,7 +144,10 @@ class RtreeApi(object):
         return self.nfh.d
 
     def needToSplit(self):
-        return self.currentNode.needToSplit()
+      res = self.currentNode.needToSplit()
+      if res:
+        self.currentNode.partitionCount = self.currentNode.partitionCount+1
+      return res
 
     def newLeaf(self):
         return MLeaf(M = self.M(), d = self.d())
