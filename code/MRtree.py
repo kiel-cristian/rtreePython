@@ -143,7 +143,6 @@ class MRtree(object):
 class MNode(MRtree):
     def __init__(self, M, d, offset = -1, mbrs = [], pointers = []):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
-        self.partitionCount = 0
 
     def __str__(self):
         return "[Node]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"

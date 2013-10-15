@@ -58,7 +58,6 @@ class RtreeFileHandler(object):
 
         # Creating Rtree file
         f = io.open(self.dataFile,'w+b')
-        f.write("")
         f.close()
 
     def __str__(self):
@@ -234,7 +233,7 @@ def rtreeFileHandlerTest():
     # Node write/read testing
     offset = 0
     mbrs = [0.5,0.6,0.1,0.15]*2
-    pointers = [_ for _ in range(len(mbrs)/2/d)]
+    pointers = [_ for _ in range(int(len(mbrs)/2/d))]
 
     # writing
     dataNode = MNode(M = nfh.M, d = nfh.d, offset = offset, mbrs = mbrs, pointers = pointers)
