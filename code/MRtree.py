@@ -35,7 +35,7 @@ class MRtree(object):
 
         self.elems          = len(self.pointers)
         self.mbr            = Mbr(d)
-        
+
         childMbrsList = self.mbrs[:]
         groupedList   = listToRanges(d, len(childMbrsList), childMbrsList)
         childMbrs     = [Mbr(d).setRange(g) for g in groupedList]
@@ -58,7 +58,18 @@ class MRtree(object):
 
     # Setea la info proveniendo de un split dentro del nodo u hoja
     def setSplitData(self, thisNodeMbr, childrenMbrPointers):
-        pass
+        self.mbr = thisNodeMbr
+        self.mbrPointers = childrenMbrPointers
+
+        self.elems = 0
+        self.pointers  = []
+        self.childMbrs = []
+        self.mbrPointers = childrenMbrPointers
+
+        for child in childrenMbrPointers:
+            self.elems = self.elems + 1
+            self.mbrs     = self.mbrs + [child.getMbr()]
+            self.pointers = self.pointers + [child.getPointer()]
 
     # Añade un hijo al arbol actual (Una tupla (mbr, pointer))
     def insert(self, mbrPointer):
