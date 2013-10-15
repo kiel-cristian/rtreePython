@@ -138,9 +138,10 @@ class RtreeApi(object):
         child = self.nfh.readTree(childMbrPointer.getPointer())
 
         self.nfh.swapTrees(newRoot, child)
-
-        self.currentNode = newRoot
         self.root        = newRoot
+
+        self.cache = [newRoot]
+        self.k     = 1
 
     # Capacidad minima de nodos y hojas
     def m(self):
@@ -212,7 +213,7 @@ class RtreeApi(object):
             self.nfh.saveTree(self.currentNode)
 
     # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
-    def update(self, newChild):
+    def insertChild(self, newChild):
         self.currentNode.insert(newChild)
         self.save()
 
@@ -255,24 +256,22 @@ class RtreeApi(object):
         lastNode = self.currentNode
 
         while self.currentHeigth() >= 0:
-            if self.currentHeigth() > 0:
-                self.chooseParent() # cambia currentNode y sube un nivel del arbol
+            self.chooseParent() # cambia currentNode y sube un nivel del arbol
 
-                self.updateChild(lastNode.getMbrPointer())
+            self.updateChild(lastNode.getMbrPointer())
 
-                if self.needToSplit():
-                    lastSplit = self.split(self.newNode(), lastSplit)
-                    lastNode  = self.currentNode
-                else:
-                    self.propagateAdjust()
-                    break
-            else:
-                # Nueva raiz
-                self.updateChild(lastNode.getMbrPointer())
-
+            if self.needToSplit():
                 lastSplit = self.split(self.newNode(), lastSplit)
 
-                self.makeNewRoot(lastSplit)
+                # Se llego a la raiz
+                if self.currentHeigth() == 0:
+                    self.makeNewRoot(lastSplit)
+                    break
+                lastNode  = self.currentNode
+            else:
+                self.insertChild(lastSplit)
+                break
+        self.propagateAdjust()
         self.goToRoot()
 
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
