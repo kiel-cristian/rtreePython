@@ -10,10 +10,10 @@ class PartitionError(Exception):
     return repr(self.value)
 
 class PartitionAlgorithm():
-  
+
   # Realiza la partición efectivamente
   # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
-  def partition(self, mbrParent, mbrPointerList, m):
+  def partition(self, mbrParent, mbrPointerList, m, leafMode = False):
     seedsIndex = self.selectSeeds(mbrParent, mbrPointerList)
     restMbr = mbrPointerList[:]
     restMbr.remove(mbrPointerList[seedsIndex[0]])
@@ -22,10 +22,10 @@ class PartitionAlgorithm():
     seeds[0] = mbrPointerList[seedsIndex[0]]
     seeds[1] = mbrPointerList[seedsIndex[1]]
     return self.partitionFromSeeds(seeds, restMbr, m)
-    
+
   def selectSeeds(self, mbrParent, mbrPointerList):
     pass
-  
+
   def partitionFromSeeds(self, seeds, restMbr, m):
     pass
 
@@ -91,7 +91,7 @@ class LinealPartition(PartitionAlgorithm):
           candidatesLen = candidatesLen + 1
 
     if candidatesLen == 2:
-      return [candidates, []] 
+      return [candidates, []]
     if candidatesLen < 2:
       raise PartitionError("Se detectaron menos de 2 candidatos para particionar")
 
@@ -245,7 +245,7 @@ def testPartition(partition, parent, mList):
 
 def newMbrPointer(point):
   return MbrPointer(Mbr(2).setPoint(point), 0)
-  
+
 if __name__ == "__main__":
   parent = Mbr(2)
   parent.setPoint([0, 1])

@@ -50,7 +50,28 @@ class RtreeApi(object):
         self.searchCount = 0
 
     def resetRoot(self):
-        pass
+        # Se construye una raiz vacia
+        self.currentNode = self.newNode()
+
+        # Creo dos hojas para mantener invariante de la raiz
+        leaf1 = self.newLeaf()
+        leaf2 = self.newLeaf()
+
+        # Guardo el nodo raiz en disco
+        self.save()
+
+        # Guardo dos hojas de la raiz en disco
+        self.save(leaf1)
+        self.save(leaf2)
+
+        # Agrego las hojas al nodo raiz
+        self.currentNode.insert(leaf1.getMbrPointer())
+        self.currentNode.insert(leaf2.getMbrPointer())
+
+        # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
+        self.save()
+
+        self.setAsRoot() # convertir nodo actual en raiz
 
     # Advertencia : USAR SOLO CON ARBOLES PEQUEÑOS!
     def __str__(self):
@@ -70,7 +91,7 @@ class RtreeApi(object):
                     s = s + "{ child, l:" + str(l) + ", i :" + str(i) + "} ->" + str(child) + "\n"
             return s
         return toStr(self.currentNode)
-        
+
     def getMeanNodePartitions(self):
       ##TODO
       pass
@@ -127,7 +148,7 @@ class RtreeApi(object):
     def computeMeanNodes(self):
         ##TODO
         self.meanTotalNodes=0
-        self.meanInternalNodes = 0 
+        self.meanInternalNodes = 0
 
     # Busqueda radial de objeto
     def search(self, radialMbr):
@@ -135,9 +156,9 @@ class RtreeApi(object):
 
         results = []
         results = self.searchR(radialMbr = radialMbr, results = results)
-      
+
         t1 = time()
-        if self.meanSearchTime == None: 
+        if self.meanSearchTime == None:
             self.meanSearchTime = t1-t0
         else:
             self.meanSearchTime = (self.meanSearchTime*self.searchCount + (t1-t0))/(self.searchCount+1)
@@ -154,7 +175,7 @@ class RtreeApi(object):
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
                     results = results + [c]
-        
+
         if self.currentHeigth() > 0:
             self.chooseParent()
         return results
@@ -177,7 +198,7 @@ class RtreeApi(object):
     def update(self, newChild):
         self.currentNode.insert(newChild)
         self.save()
-        
+
     # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
     def updateChild(self, mbrPointer):
         self.currentNode.updateChild(mbrPointer)
@@ -213,25 +234,8 @@ class RtreeApi(object):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.radialSelect(mbrO, childrenMbrs)
 
-    # Maneja split
-    def split(self, newRtree, mbrPointer, leafMode = False):
-        currentMbr   = self.currentNode.getMbr()
-        children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
-
-        currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
-        partitionData = self.pa.partition(currentMbr, children + [mbrPointer], self.m(), leafMode) # efectuamos la particion de elementos agregando el elemento a insertar
-
-        self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
-        newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
-
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
-
-        treeMbrPointer = newRtree.getMbrPointer()
-        return treeMbrPointer
-
     # Propaga el split hasta donde sea necesario
-    def propagateSplit(self, splitMbrPointer):        
+    def propagateSplit(self, splitMbrPointer):
         lastSplit = splitMbrPointer
         lastNode = self.currentNode
 
@@ -250,7 +254,7 @@ class RtreeApi(object):
             else:
                 # Nueva raiz
                 self.updateChild(lastNode.getMbrPointer())
-                
+
                 lastSplit = self.split(self.newNode(), lastSplit)
 
                 self.makeNewRoot(lastSplit)

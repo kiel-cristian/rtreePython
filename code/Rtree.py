@@ -12,30 +12,6 @@ class Rtree(RtreeApi):
         super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "r+tree")
         self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
 
-    def resetRoot(self):
-        # Se construye una raiz vacia
-        self.currentNode = self.newNode()
-
-        # Creo dos hojas para mantener invariante de la raiz
-        leaf1 = self.newLeaf()
-        leaf2 = self.newLeaf()
-
-        # Guardo el nodo raiz en disco
-        self.save()
-
-        # Guardo dos hojas de la raiz en disco
-        self.save(leaf1)
-        self.save(leaf2)
-
-        # Agrego las hojas al nodo raiz
-        self.currentNode.insert(leaf1.getMbrPointer())
-        self.currentNode.insert(leaf2.getMbrPointer())
-
-        # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
-        self.save()
-
-        self.setAsRoot() # convertir nodo actual en raiz
-
     def insert(self, mbrPointer):
         t0 = time()
 
@@ -52,13 +28,30 @@ class Rtree(RtreeApi):
             self.propagateAdjust() # ajusta mbrs hasta la raiz
 
         t1 = time()
-        if self.meanInsertionTime == None: 
-          self.meanInsertionTime = t1-t0 
+        if self.meanInsertionTime == None:
+          self.meanInsertionTime = t1-t0
         else:
           self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
           self.insertionsCount = self.insertionsCount +1
         self.computeMeanNodes()
         self.goToRoot()
+
+    # Maneja split
+    def split(self, newRtree, mbrPointer, leafMode = False):
+        currentMbr   = self.currentNode.getMbr()
+        children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
+
+        currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
+        partitionData = self.pa.partition(currentMbr, children + [mbrPointer], self.m(), leafMode) # efectuamos la particion de elementos agregando el elemento a insertar
+
+        self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
+        newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
+
+        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
+
+        treeMbrPointer = newRtree.getMbrPointer()
+        return treeMbrPointer
 
 
 
