@@ -214,11 +214,9 @@ class RtreeApi(object):
         return
 
     # Escoger el padre del nodo actual
-    def chooseParent(self, plusMode = False):
+    def chooseParent(self):
         if self.k > 0:
             self.currentNode = self.cache[self.k - 1]
-            if plusMode:
-                self.brothersCache = self.brothersCache + [self.cache[-1]]
             self.cache = self.cache[0:self.k-1]
             self.k = self.k - 1
         else:

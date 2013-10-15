@@ -11,11 +11,12 @@ class RtreePlus(RtreeApi):
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 2):
         super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType)
         self.sa = RtreePlusSelection() # Algoritmo de seleccion de mejor nodo a insertar en base a interseccion de areas
-        self.lastInsertH = 0
+        self.visitedNodes = {}
         self.pendingSplits = {}
 
         for h in self.H:
             self.pendingSplits[h] = []
+            self.visitedNodes[h]  = []
 
     def chooseAnyTree(self):
         return self.sa.selectAny(self.currentNode)
@@ -80,7 +81,7 @@ class RtreePlus(RtreeApi):
         if self.currentHeigth() > 0:
             childMbrPointer = self.currentNode.getMbrPointer()
 
-            self.chooseParent(plusMode = True) # cambia currentNode y sube un nivel del arbol
+            self.chooseParent() # cambia currentNode y sube un nivel del arbol
 
             self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
@@ -125,6 +126,23 @@ class RtreePlus(RtreeApi):
         for split in self.pendingSplits[self.currentHeigth()]:
 
             self.pa.partitions()
+
+    # Maneja split
+    def split(self, newRtree, mbrPointer, leafMode = False):
+        currentMbr   = self.currentNode.getMbr()
+        children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
+
+        currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
+        partitionData = self.pa.partition(currentMbr, children + [mbrPointer], self.m(), leafMode) # efectuamos la particion de elementos agregando el elemento a insertar
+
+        self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
+        newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
+
+        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
+
+        treeMbrPointer = newRtree.getMbrPointer()
+        return treeMbrPointer
 
 if __name__=="__main__":
     d = 2
