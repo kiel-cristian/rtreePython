@@ -19,7 +19,20 @@ class RtreePlus(RtreeApi):
             self.visitedNodes[h]  = {}
 
     def chooseAnyTree(self):
-        return self.sa.selectAny(self.currentNode)
+        mbrPointer = self.sa.selectAny(self.currentNode)
+        if mbrPointer == None:
+            newNode = self.newNode()
+            newLeaf = self.newLeaf()
+
+            self.allocateTree(newNode)
+            self.save(newLeaf)
+
+            leafMbrPointer = newLeaf.getMbrPointer()
+            newNode.insert(leafMbrPointer)
+            self.save(newNode)
+            return leafMbrPointer
+        else:
+            return mbrPointer
 
     def setLastInsertHeight(self):
         self.lastInsertH = self.k

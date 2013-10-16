@@ -54,11 +54,12 @@ class RtreePlusSelection(SelectionManager):
     for mbrP in mbrPointersList:
       if mbrP.getPointer() > 0: # Puntero no nulo
         return mbrP
-    raise SelectionError("No se encontro un nodo para seleccionar valido")
-  
+    # No se encontro ningun nodo, por ende, es necesario generar uno nuevo
+    return None
+
 def newMbrPointer(point):
   return MbrPointer(Mbr(2).setPoint(point), 0)
-  
+
 if __name__ == "__main__":
   parent = newMbrPointer([0.5,0.5])
   parent.setRange([0.2, 0.2,0.8,0.8])

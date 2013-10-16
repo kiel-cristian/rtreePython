@@ -166,6 +166,10 @@ class RtreeFileHandler(object):
         tree.offset = -1
         self.saveTree(tree)
 
+    def allocateTree(self,tree):
+        tree.offset = self.lastOffset
+        self.lastOffset = self.lastOffset + self.nodeBytes
+
     def genData(self,dataFile,d,n):
         randVectors = [random.random() for _ in range(n)]
         buf         = struct.pack('1i',d) + struct.pack('1i',n) + struct.pack('%sd' % len(randVectors), *randVectors)

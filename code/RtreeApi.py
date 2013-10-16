@@ -72,8 +72,8 @@ class RtreeApi(object):
         leaf1 = self.newLeaf()
         leaf2 = self.newLeaf()
 
-        # Guardo el nodo raiz en disco
-        self.save()
+        # Reservo un espacio en memoria para el nodo actual
+        self.allocate()
 
         # Guardo dos hojas de la raiz en disco
         self.save(leaf1)
@@ -83,7 +83,7 @@ class RtreeApi(object):
         self.currentNode.insert(leaf1.getMbrPointer())
         self.currentNode.insert(leaf2.getMbrPointer())
 
-        # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
+        # Guardo el nodo raiz en disco
         self.save()
 
         self.setAsRoot() # convertir nodo actual en raiz
@@ -124,6 +124,12 @@ class RtreeApi(object):
                 print("i: " + str(i) + " " + (str(child)))
                 i =  i + 1
 
+    def allocateTree(self, tree = None):
+        if tree == None:
+            self.nfh.allocateTree(self.currentNode)
+        else:
+            self.nfh.allocateTree(tree)
+
     def getMeanNodePartitions(self):
       ##TODO
       pass
@@ -153,7 +159,7 @@ class RtreeApi(object):
         newRoot.insert(childMbrPointer)
         self.save(newRoot)
 
-        self.root        = newRoot
+        self.root  = newRoot
         self.cache = [newRoot]
         self.k     = 1
 
