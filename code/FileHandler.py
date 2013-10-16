@@ -166,6 +166,10 @@ class RtreeFileHandler(object):
         tree.offset = -1
         self.saveTree(tree)
 
+    def allocateTree(self,tree):
+        tree.offset = self.lastOffset
+        self.lastOffset = self.lastOffset + self.nodeBytes
+
     def genData(self,dataFile,d,n):
         randVectors = [random.random() for _ in range(n)]
         buf         = struct.pack('1i',d) + struct.pack('1i',n) + struct.pack('%sd' % len(randVectors), *randVectors)
@@ -176,7 +180,7 @@ class RtreeFileHandler(object):
         doubleSize = struct.calcsize("d")
         offset     = 0
 
-        d       = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
+        # d       = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
         offset  = offset + intSize
 
         size    = (struct.unpack('1i', self.read(bytes = intSize, offset = offset, dataFile = self.loadDataFile)))[0]
@@ -202,8 +206,9 @@ def ioTest():
     print(floatlist[0] == floatlist2[0])
 
 def nfhDataReadTest():
-    d = 2
-    blockBytes = 4096
+    pass
+    # d = 2
+    # blockBytes = 4096
 
     # nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
     #                         dataFile        = "rtree" + str(d) + "D.bin",
@@ -228,7 +233,7 @@ def rtreeFileHandlerTest():
     nfh = RtreeFileHandler( loadDataFile    = "data" + str(d) + "D.bin",
                             dataFile        = "TestRtree" + str(d) + "D.bin",
                             d = d,
-                            M = 50)
+                            M = M)
     print(nfh)
 
     # Node write/read testing
@@ -303,6 +308,6 @@ def rtreeFileHandlerTest():
     print("Elements")
     print(nfh.elems)
 
-if __name__=="__main__":
+if __name__ == "__main__":
     ioTest()
     rtreeFileHandlerTest()

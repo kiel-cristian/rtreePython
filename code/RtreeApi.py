@@ -1,8 +1,7 @@
 # encoding: utf-8
 from math import log
 from math import ceil
-import sys
-import struct
+from time import time
 from FileHandler import *
 from MRtree import *
 from PartitionAlgorithm import *
@@ -10,6 +9,7 @@ from PartitionAlgorithm import *
 #  ERRORS
 class RtreeError(Exception):
     def __init__(self, value):
+        super(RtreeError, self).__init__()
         self.value = value
     def __str__(self):
         return (str(type(self))) + " " + repr(self.value)
@@ -20,70 +20,75 @@ class RtreeApi(object):
     # maxE       : cantidad maxima de elementos que almacenara el Rtree
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
-    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0, rPlus = False, dataFile = 'rtree'):
-      self.nfh = RtreeFileHandler(loadDataFile = "data" + str(d) + "D.bin", dataFile = dataFile + str(d) + "D.bin", d = d, M = M, initOffset = initOffset)
+    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, dataFile = 'rtree'):
+        self.nfh = RtreeFileHandler(  loadDataFile = "data" + str(d) + "D.bin",
+                                    dataFile = dataFile + str(d) + "D.bin",
+                                    d = d, M = M,
+                                    initOffset = initOffset)
 
-      # Algoritmo de particionamiento
-      if partitionType == 0:
-          self.pa = LinealPartition()
-      elif partitionType == 1:
-          self.pa = CuadraticPartition()
-      elif partitionType == 2:
-          self.pa = SweepPartition()
+        self.pa = None
+        self.sa = None
 
-      self.cache = []                             # cache: lista de nodos visitados
-      self.k = 0                                  # k: nodos en cache
-      self.H = ceil(log(maxE, self.M())) -1             # H: altura maxima del arbol
+        self.cache = []                              # cache: lista de nodos visitados
+        self.k = 0                                   # k: nodos en cache
+        self.H = int(ceil(log(maxE, self.M())) -1)   # H: altura maxima del arbol
 
-      #Metricas
-      #Mean insertion time
-      self.meanInsertionTime = None
-      self.insertionsCount = 0
+        #Metricas
+        #Mean insertion time
+        self.meanInsertionTime = None
+        self.insertionsCount = 0
 
-      #Mean internal and external nodes
-      self.internalNodeCount = 0
-      self.leafCount = 0
+        #Mean internal and external nodes
+        self.internalNodeCount = 0
+        self.leafCount = 0
 
-      #Mean search time
-      self.meanSearchTime = None
-      self.searchCount = 0
+          #Mean search time
+        self.meanSearchTime = None
+        self.searchCount = 0
 
-      #Mean visited nodes
-      self.visitedNodes = 0
+          #Mean visited nodes
+        self.visitedNodes = 0
 
-      #Mean splits per node
-      self.splitCount = 0
+          #Mean splits per node
+        self.splitCount = 0
 
-      self.meanTotalNodes = 0
-      self.meanInternalNodes = 0
+        self.meanTotalNodes = 0
+        self.meanInternalNodes = 0
 
-      # Inicializacion de la raiz
-      if reset:
-          self.resetRoot()
-      else:
-          # Se carga la raiz de disco
-          self.getRoot(initOffset)
+        self.currentNode = None
+        self.root        = None
+
+        # Inicializacion de la raiz
+        if reset:
+            self.resetRoot()
+        else:
+            # Se carga la raiz de disco
+            self.loadRoot(initOffset)
+
+    def loadRoot(self, initOffset):
+        self.currentNode = self.read(initOffset)
+        self.root = self.currentNode
 
     def resetRoot(self):
         # Se construye una raiz vacia
         self.currentNode = self.newNode()
 
         # Creo dos hojas para mantener invariante de la raiz
-        leaf1 = self.newLeaf()
-        leaf2 = self.newLeaf()
+        newLeaf1 = self.newLeaf()
+        newLeaf2 = self.newLeaf()
 
-        # Guardo el nodo raiz en disco
-        self.save()
+        # Reservo un espacio en memoria para el nodo actual
+        self.allocateTree()
 
         # Guardo dos hojas de la raiz en disco
-        self.save(leaf1)
-        self.save(leaf2)
+        self.save(newLeaf1)
+        self.save(newLeaf2)
 
         # Agrego las hojas al nodo raiz
-        self.currentNode.insert(leaf1.getMbrPointer())
-        self.currentNode.insert(leaf2.getMbrPointer())
+        self.currentNode.insert(newLeaf1.getMbrPointer())
+        self.currentNode.insert(newLeaf2.getMbrPointer())
 
-        # Guardo el nodo raiz en disco nuevamente, ya que, se agregaron las hojas en su estructura
+        # Guardo el nodo raiz en disco
         self.save()
 
         self.setAsRoot() # convertir nodo actual en raiz
@@ -97,7 +102,7 @@ class RtreeApi(object):
                 i = 0
                 children = tree.getChildren()
                 for child in children:
-                    childTree = self.nfh.readTree(child.getPointer())
+                    childTree = self.read(child.getPointer())
                     s = toStr(childTree, s, l + 1, i)
                     i = i + 1
             else:
@@ -117,12 +122,18 @@ class RtreeApi(object):
 
         if currentNode.isANode():
             for child in currentNode.getChildren():
-                self.printRec(self.nfh.readTree(child.getPointer()))
+                self.printRec(self.read(child.getPointer()))
         else:
             i = 0
             for child in currentNode.getChildren():
                 print("i: " + str(i) + " " + (str(child)))
                 i =  i + 1
+
+    def allocateTree(self, tree = None):
+        if tree == None:
+            self.nfh.allocateTree(self.currentNode)
+        else:
+            self.nfh.allocateTree(tree)
 
     # Fija punteros auxiliares de la estructura a la  raiz
     def goToRoot(self):
@@ -133,10 +144,6 @@ class RtreeApi(object):
     def setAsRoot(self, offset = 0):
         self.currentNode.setAsRoot(offset)
         self.root = self.currentNode
-
-    def loadRoot(self, offset = 0):
-        self.currentNode = self.nfh.readTree(offset)
-        self.makeRoot(offset)
 
     # Crea una nueva raiz recibiendo mbrPointer del hermano recien creado
     def makeNewRoot(self, childMbrPointer):
@@ -149,7 +156,7 @@ class RtreeApi(object):
         newRoot.insert(childMbrPointer)
         self.save(newRoot)
 
-        self.root        = newRoot
+        self.root  = newRoot
         self.cache = [newRoot]
         self.k     = 1
 
@@ -165,45 +172,45 @@ class RtreeApi(object):
         return self.nfh.d
 
     def needToSplit(self):
-      res = self.currentNode.needToSplit()
-      if res:
-        self.incrementSplitCount()
-      return res
+        res = self.currentNode.needToSplit()
+        if res:
+            self.incrementSplitCount()
+        return res
 
     def newLeaf(self):
-      self.incrementLeafCount()
-      return MLeaf(M = self.M(), d = self.d())
+        self.incrementLeafCount()
+        return MLeaf(M = self.M(), d = self.d())
 
     def newNode(self):
-      self.incrementInternalNodeCount()
-      return MNode(M = self.M(), d = self.d())
+        self.incrementInternalNodeCount()
+        return MNode(M = self.M(), d = self.d())
 
     # Busqueda radial de objeto
     def search(self, radialMbr):
-      t0 = time()
+        t0 = time()
 
-      results = []
-      results = self.searchR(radialMbr=radialMbr, results=results)
+        results = []
+        results = self.searchR(radialMbr=radialMbr, results=results)
 
-      t1 = time()
-      self.incrementMeanSearchTime(t1 - t0)
-      return results
+        t1 = time()
+        self.incrementMeanSearchTime(t1 - t0)
+        return results
 
     def searchR(self, radialMbr, results):
-      if self.currentNode.isANode():
-        self.incrementVisitedNodes()
-        selections = self.chooseTreeForSearch(radialMbr)
-        for s in  selections:
-          self.seekNode(s)
-          results = results + self.searchR(radialMbr, results)
-      else:
-        for c in self.currentNode.getChildren():
-          if radialMbr.areIntersecting(c):
-            results = results + [c]
+        if self.currentNode.isANode():
+            self.incrementVisitedNodes()
+            selections = self.chooseTreeForSearch(radialMbr)
+            for s in  selections:
+                self.seekNode(s)
+                results = self.searchR(radialMbr, results)
+        else:
+            for c in self.currentNode.getChildren():
+                if radialMbr.areIntersecting(c):
+                    results = results + [c]
 
-      if self.currentHeigth() > 0:
-        self.chooseParent()
-      return results
+            if self.currentHeigth() > 0:
+                self.chooseParent()
+        return results
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):
@@ -219,30 +226,51 @@ class RtreeApi(object):
         else:
             self.nfh.saveTree(self.currentNode)
 
+    # Lee y entrega un nodo u hoja de disco
+    def read(self, treeOffset):
+        return self.nfh.readTree(treeOffset)
+
     # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
     def insertChild(self, newChild):
         self.currentNode.insert(newChild)
+        self.updateCache()
         self.save()
 
     # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
     def updateChild(self, mbrPointer):
         self.currentNode.updateChild(mbrPointer)
+        self.updateCache()
         self.save()
+
+    # Actualiza en el cache el nodo que acaba de cambiar
+    def updateCache(self):
+        k = self.currentHeigth()
+        if len(self.cache) > k:
+            self.cache[k] = self.currentNode
+
+    # Vuelve puntero del nodo padre al ultimo almacenado en cache
+    def goToLastLevel(self):
+        self.k = len(self.cache)
 
     # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, mbrPointer):
         pointer = mbrPointer.getPointer()
-        self.cache = self.cache + [self.currentNode]
+
+        if len(self.cache) > self.k:
+            self.cache[self.k - 1] = self.currentNode
+        else:
+            self.cache = self.cache + [self.currentNode]
         self.k = self.k + 1
 
-        self.currentNode = self.nfh.readTree(pointer)
+        self.currentNode = self.read(pointer)
         return
 
     # Escoger el padre del nodo actual
-    def chooseParent(self):
+    def chooseParent(self, destructive = True):
         if self.k > 0:
             self.currentNode = self.cache[self.k - 1]
-            self.cache = self.cache[0:self.k-1]
+            if destructive:
+                self.cache = self.cache[0:self.k-1] # Por defecto el cache se destruye al subir al padre
             self.k = self.k - 1
         else:
             raise RtreeError("Ya esta en la raiz")
@@ -257,30 +285,6 @@ class RtreeApi(object):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.radialSelect(mbrO, childrenMbrs)
 
-    # Propaga el split hasta donde sea necesario
-    def propagateSplit(self, splitMbrPointer):
-        lastSplit = splitMbrPointer
-        lastNode = self.currentNode
-
-        while self.currentHeigth() >= 0:
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(lastNode.getMbrPointer())
-
-            if self.needToSplit():
-                lastSplit = self.split(self.newNode(), lastSplit)
-
-                # Se llego a la raiz
-                if self.currentHeigth() == 0:
-                    self.makeNewRoot(lastSplit)
-                    break
-                lastNode  = self.currentNode
-            else:
-                self.insertChild(lastSplit)
-                break
-        self.propagateAdjust()
-        self.goToRoot()
-
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
     def propagateAdjust(self):
         while self.currentHeigth() > 0:
@@ -291,43 +295,43 @@ class RtreeApi(object):
             self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
     def incrementMeanSearchTime(self, delta):
-      if self.meanSearchTime == None:
-        self.meanSearchTime = delta
-      else:
-        self.meanSearchTime = (self.meanSearchTime * self.searchCount + delta) / (self.searchCount + 1)
-      self.searchCount = self.searchCount + 1
+        if self.meanSearchTime == None:
+            self.meanSearchTime = delta
+        else:
+            self.meanSearchTime = (self.meanSearchTime * self.searchCount + delta) / (self.searchCount + 1)
+        self.searchCount = self.searchCount + 1
 
     def incrementMeanInsertionTime(self, delta):
-      if self.meanInsertionTime == None:
-        self.meanInsertionTime = delta
-      else:
-        self.meanInsertionTime = (self.meanInsertionTime * self.insertionsCount + delta) / (self.insertionsCount + 1)
-      self.insertionsCount = self.insertionsCount + 1
+        if self.meanInsertionTime == None:
+            self.meanInsertionTime = delta
+        else:
+            self.meanInsertionTime = (self.meanInsertionTime * self.insertionsCount + delta) / (self.insertionsCount + 1)
+        self.insertionsCount = self.insertionsCount + 1
 
     def incrementVisitedNodes(self):
-      self.visitedNodes = self.visitedNodes + 1
+        self.visitedNodes = self.visitedNodes + 1
 
     def incrementSplitCount(self):
-      self.splitCount = self.splitCount + 1
+        self.splitCount = self.splitCount + 1
 
     def incrementLeafCount(self):
-      self.leafCount = self.leafCount + 1
+        self.leafCount = self.leafCount + 1
 
     def incrementInternalNodeCount(self):
-      self.internalNodeCount = self.internalNodeCount + 1
+        self.internalNodeCount = self.internalNodeCount + 1
 
     def computeMeanNodes(self):
-      self.meanTotalNodes = (self.meanTotalNodes * (self.insertionsCount - 1) + (self.internalNodeCount + self.leafCount))/self.insertionsCount
-      self.meanInternalNodes = (self.meanInternalNodes * (self.insertionsCount - 1) + self.internalNodeCount)/self.insertionsCount
+        self.meanTotalNodes = (self.meanTotalNodes * (self.insertionsCount - 1) + (self.internalNodeCount + self.leafCount))/self.insertionsCount
+        self.meanInternalNodes = (self.meanInternalNodes * (self.insertionsCount - 1) + self.internalNodeCount)/self.insertionsCount
 
     def getMeanNodePartitions(self):
-      return self.splitCount/(self.internalNodeCount + self.leafCount)
+        return self.splitCount/(self.internalNodeCount + self.leafCount)
 
     def getMeanVisitedNodes(self):
-      return self.visitedNodes/self.searchCount
+        return self.visitedNodes/self.searchCount
 
-if __name__=="__main__":
+if __name__ == "__main__":
     d = 2
     M = 100
-    rApi = RtreeApi(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    rApi = RtreeApi(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0)
     print(rApi)
