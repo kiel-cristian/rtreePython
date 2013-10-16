@@ -1,7 +1,9 @@
 from MbrApi import *
+from math import sqrt
 
 class Mbr(MbrApi):
     def __init__(self, d, minV=0, maxV=1):
+        super(Mbr, self).__init__()
         self.d = d
         self.coords = [maxV, minV] * self.d
         self.dRanges = self.listToRange(self.coords)
@@ -11,7 +13,7 @@ class Mbr(MbrApi):
 
     def cutOnDimension(self, dToCut, cut):
         dumpCopy = self.dump()[:]
-        firstCopy  = Mbr(self.d).setRange(dumpCopy)
+        firstCopy    = Mbr(self.d).setRange(dumpCopy)
         secondCopy = Mbr(self.d).setRange(dumpCopy)
 
         for i in range(self.d):
@@ -21,19 +23,19 @@ class Mbr(MbrApi):
         return [firstCopy, secondCopy]
 
     def getCenter(self):
-      mid = []
-      for d in range(self.d):
-        mid = mid + [(self.getMin(d) + self.getMax(d))/2]
-      return mid
+        mid = []
+        for d in range(self.d):
+            mid = mid + [(self.getMin(d) + self.getMax(d))/2]
+        return mid
 
     def getArea(self):
-      area = -1.0
-      for d in range(0, self.d):
-        if area == -1.0:
-          area = self.getMax(d) - self.getMin(d)
-        else:
-          area = area * (self.getMax(d) - self.getMin(d))
-      return area
+        area = -1.0
+        for d in range(0, self.d):
+            if area == -1.0:
+                area = self.getMax(d) - self.getMin(d)
+            else:
+                area = area * (self.getMax(d) - self.getMin(d))
+        return area
 
     def getMin(self, dimension):
         return self.dRanges[dimension][0]
@@ -96,7 +98,7 @@ class Mbr(MbrApi):
 
     # Retorna el espacio muerto resultante de unir 2 MBR's
     def deadSpace(self, mbr):
-      return self.returnExpandedMBR(mbr).getArea() - (self.getArea() + mbr.getArea())
+        return self.returnExpandedMBR(mbr).getArea() - (self.getArea() + mbr.getArea())
 
     def checkExpand(self, mbr):
         a = 1
@@ -120,19 +122,19 @@ class Mbr(MbrApi):
 
     # Retorna un MBR que incluya el actual y el mbr dado
     def returnExpandedMBR(self, mbr):
-      expandedMbr = Mbr(self.d)
-      for i in range(self.d):
-        dMin = self.getMin(i)
-        dMax = self.getMax(i)
-        if mbr.getMin(i) < dMin:
-          expandedMbr.setMin(i, mbr.getMin(i))
-        else:
-          expandedMbr.setMin(i, dMin)
-        if mbr.getMax(i) > dMax:
-          expandedMbr.setMax(i, mbr.getMax(i))
-        else:
-          expandedMbr.setMax(i, dMax)
-      return expandedMbr
+        expandedMbr = Mbr(self.d)
+        for i in range(self.d):
+            dMin = self.getMin(i)
+            dMax = self.getMax(i)
+            if mbr.getMin(i) < dMin:
+                expandedMbr.setMin(i, mbr.getMin(i))
+            else:
+                expandedMbr.setMin(i, dMin)
+            if mbr.getMax(i) > dMax:
+                expandedMbr.setMax(i, mbr.getMax(i))
+            else:
+                expandedMbr.setMax(i, dMax)
+        return expandedMbr
 
     # Expande el MBR actual para que incluya tambien el mbr dado
     def expand(self, mbr):
@@ -147,17 +149,16 @@ class Mbr(MbrApi):
                 self.setMax(i, mbr.getMax(i))
 
     def areIntersecting(self,mbr):
-      for d in range(self.d):
-        mMin = self.getMin(d)
-        mMax = self.getMax(d)
-        eMin = mbr.getMin(d)
-        eMax = mbr.getMax(d)
-        if(not((eMin >= mMin and eMin <= mMax) or (eMax >= mMin and eMax <= mMax))):
-          return False
-      return True
+        for d in range(self.d):
+            mMin = self.getMin(d)
+            mMax = self.getMax(d)
+            eMin = mbr.getMin(d)
+            eMax = mbr.getMax(d)
+            if(not((eMin >= mMin and eMin <= mMax) or (eMax >= mMin and eMax <= mMax))):
+                return False
+        return True
 
 def listToRanges(d, n, coords):
-    helper = Mbr(d)
     dRanges = []
     mbrCoords = []
     i = 0
@@ -174,22 +175,22 @@ def listToRanges(d, n, coords):
 if __name__ == "__main__":
     m = Mbr(2)
     if not m.dRanges == [[1, 0], [1, 0]]:
-        raise "Error on dRanges"
+        print("Error on dRanges")
     if not m.coords == [1, 0, 1, 0]:
-        raise "Error on coords"
+        print("Error on coords")
 
     m.setRange([0.5, 0.568, 0.1, 0.2])
 
     if not m.dRanges == [[0.5, 0.568], [0.1, 0.2]]:
-        raise "Error on dRanges"
+        print("Error on dRanges")
     if not m.coords == [0.5, 0.568, 0.1, 0.2]:
-        raise "Error on coords"
+        print("Error on coords")
 
     m.setPoint([0.2, 0.7])
     if not m.dRanges == [[0.2, 0.2], [0.7, 0.7]]:
-        raise "Error on dRanges"
+        print("Error on dRanges")
     if not m.coords == [0.2, 0.2, 0.7, 0.7]:
-        raise "Error on coords"
+        print("Error on coords")
 
 
     m2 = Mbr(2)

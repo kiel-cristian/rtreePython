@@ -9,8 +9,13 @@ class Rtree(RtreeApi):
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
-        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "rtree")
+        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "rtree")
         self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
+        # Algoritmo de particionamiento
+        if partitionType == 0:
+            self.pa = LinealPartition()
+        elif partitionType == 1:
+            self.pa = CuadraticPartition()
 
     def insert(self, mbrPointer):
         t0 = time()
@@ -43,25 +48,48 @@ class Rtree(RtreeApi):
         self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
 
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
+        self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.save(newRtree)          # Guardo el nuevo nodo (u hoja) en disco
 
         treeMbrPointer = newRtree.getMbrPointer()
         return treeMbrPointer
 
-if __name__=="__main__":
+    # Propaga el split hasta donde sea necesario
+    def propagateSplit(self, splitMbrPointer):
+        lastSplit = splitMbrPointer
+        lastNode = self.currentNode
+
+        while self.currentHeigth() >= 0:
+            self.chooseParent() # cambia currentNode y sube un nivel del arbol
+
+            self.updateChild(lastNode.getMbrPointer())
+
+            if self.needToSplit():
+                lastSplit = self.split(self.newNode(), lastSplit)
+
+                # Se llego a la raiz
+                if self.currentHeigth() == 0:
+                    self.makeNewRoot(lastSplit)
+                    break
+                lastNode  = self.currentNode
+            else:
+                self.insertChild(lastSplit)
+                break
+        self.propagateAdjust()
+        self.goToRoot()
+
+if __name__ == "__main__":
     d = 2
     M = 100
     rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
-    objects = [randomMbrPointer(d) for i in range(13)]
+    objects = [randomMbrPointer(d) for i in range(100)]
     print("Data generada")
 
     for o in objects:
         rtree.insert(o)
 
     print(rtree)
-    #print("propagateSplit")rtree.printTree()
 
     r = 0.25
     print(randomRadialMbr(d,r))

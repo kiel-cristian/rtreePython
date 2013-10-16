@@ -2,30 +2,58 @@
 from SelectionManager import *
 from RtreeApi import *
 
+# Clases auxiliares para manejar estados posibles posteriores a una insercion recursiva.
+# La idea de usar estas estructuras es la de manejar los casos de borde sin salir de la recursion principal
+# (Basado en Trampolines)
+class RtreePlusStatus(object):
+    def __init__(self, tree = None, data = None):
+        self.tree = tree
+        self.data = data
+
+    def handle(self):
+        return None
+
+class RtreePlusAdjustStatus(RtreePlusStatus):
+    def __init__(self, tree):
+        super(RtreePlusAdjustStatus, self).__init__(tree)
+
+    def handle(self):
+        return self.tree.adjustOneLevel()
+
+class RtreePlusSplitStatus(RtreePlusStatus):
+    def __init__(self, tree, splitMbrPointer):
+        super(RtreePlusSplitStatus, self).__init__(tree, splitMbrPointer)
+
+    def handle(self):
+        return self.tree.splitOneLevel(self.data)
+
+class RtreePlusBackToRecursionLevel(RtreePlusStatus):
+    def __init__(self, tree):
+        super(RtreePlusBackToRecursionLevel, self).__init__(tree)
+
+    def handle(self):
+        return self.tree.goToLastLevel()
+
 class RtreePlus(RtreeApi):
     # d          : dimension de vectores del arbol
     # M          : capacidad maxima de nodos y hojas
     # maxE       : cantidad maxima de elementos que almacenara el RtreePlus
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
-    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 2):
-        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "r+tree")
-        self.sa = RtreePlusSelection() # Algoritmo de seleccion de mejor nodo a insertar en base a interseccion de areas
+    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0):
+        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "r+tree")
+        # Algoritmo de seleccion de mejor nodo a insertar
+        # en base a interseccion de areas
+        self.sa = RtreePlusSelection()
         self.visitedNodes = {}
-        self.pendingSplits = {}
 
-        for h in self.H:
-            self.pendingSplits[h] = {}
+        for h in range(self.H):
             self.visitedNodes[h]  = {}
 
-    def chooseAnyTree(self):
-        return self.sa.selectAny(self.currentNode)
-
-    def setLastInsertHeight(self):
-        self.lastInsertH = self.k
-
-    def lastInsertHeight(self):
-        return self.lastInsertH
+    def goToRoot(self):
+        for h in range(self.H):
+            self.visitedNodes[h]  = {}
+        super(RtreePlus, self).goToRoot()
 
     def insert(self, mbrPointer):
         t0 = time()
@@ -34,156 +62,178 @@ class RtreePlus(RtreeApi):
         self.goToRoot()
 
         t1 = time()
-        if self.meanInsertionTime == None:
-          self.meanInsertionTime = t1-t0
-        else:
-          self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
-          self.insertionsCount = self.insertionsCount +1
+        self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
 
-    def markNodeAsVisited(self, node):
+    def markNodeAsVisited(self, next):
         self.visitedNodes[self.currentHeigth()][next.getPointer()] = True
+
+    def nodeIsVisited(self, next):
+        return self.visitedNodes[self.currentHeigth()][next.getPointer()] == True
+
+    def goToLastLevel(self):
+        super(RtreePlus, self).goToLastLevel()
+        return RtreePlusStatus(self)
 
     def insertR(self, mbrPointer):
         # Bajo por todos los nodos adecuados
         if self.currentNode.isANode():
-            trees = self.chooseTree(self.currentNode, mbrPointer)
+            trees = self.chooseTree(mbrPointer)
 
             if len(trees) == 0:
-                self.insertBestNode(mbrPointer) #TODO
+                self.insertOnNewNode(mbrPointer)
+                return None
             else:
                 for next in trees:
-                    self.visitedNodes[self.currentHeigth()][next.getPointer()] != True:
+                    if not self.nodeIsVisited(next):
                         self.seekNode(next)
                         self.markNodeAsVisited(next)
-                        self.insertR(mbrPointer)
+                        lastStatus = self.insertR(mbrPointer)
+                        while lastStatus != None:
+                            lastStatus = lastStatus.handle()
+                        self.chooseParent()
+                        return None
         # Al encontrar una hoja
         else:
             if self.currentNode.needToSplit():
                 newLeaf = self.splitLeaf(self.currentNode.getChildren() + [mbrPointer])
-                self.propagateSplit(newLeaf)
+                return RtreePlusSplitStatus(self, newLeaf)
             else:
-                self.update(mbrPointer)
-                self.propagateAdjust()
+                self.insertChild(mbrPointer)
+                return RtreePlusAdjustStatus(self)
 
-    # TODO
-    def insertBestNode(self, mbrPointer):
-        print("PENDING")
-        pass
+    def insertOnNewNode(self, mbrPointer):
+        # El mbr a insertar no intersecta con ningun nodo, por ende, se genera una nueva tupla de nodo, hoja
+        newNode = self.newNode()
+        newLeaf = self.newLeaf()
+
+        self.allocateTree(newNode)
+        self.save(newLeaf)
+
+        leafMbrPointer = newLeaf.getMbrPointer()
+        newNode.insert(leafMbrPointer)
+        self.save(newNode)
+
+        if self.needToSplit():
+            self.makeNewRoot(newNode.getMbrPointer())
+        else:
+            self.insertChild(mbrPointer)
+            self.propagateAdjust()
 
     # Ajusta Mbr del nodo padre del nodo actual
     def adjustOneLevel(self):
         if self.currentHeigth() > 0:
             childMbrPointer = self.currentNode.getMbrPointer()
 
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
+            self.chooseParent(destructive = False) # cambia currentNode y sube un nivel del arbol
 
             self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
-    # Analogo a insert, inserta nuevos nodos hacia arriba en RtreePlus hasta el nivel del padre
-    def splitOneLevel(self, splitMbrPointer):
-        lastSplit = splitMbrPointer
-        lastNode = self.currentNode
+            return RtreePlusAdjustStatus(self)
+        else:
+            return RtreePlusBackToRecursionLevel(self)
 
-        # if self.currentHeigth() > 0:
+    # Analogo a insert, inserta nodo de split en el padre
+    def splitOneLevel(self, splitMbrPointer, internalMode = False):
+        lastSplit = splitMbrPointer
 
         if self.currentHeigth() > 0:
-        self.chooseParent() # cambia currentNode y sube un nivel del arbol
+            self.chooseParent(destructive = False) # cambia currentNode y sube un nivel del arbol
 
-        self.updateChild(lastNode.getMbrPointer())
+            self.updateChild(self.currentNode.getMbrPointer())
 
-        if self.needToSplit():
-            self.pendingSplits[self.currentHeigth()] = self.pendingSplits[self.currentHeigth()] + [lastSplit]
-        else:
-            self.update(lastSplit)
-    '''
-    def doPendingSplits(self):
-        pendingSplitsLen = len(self.pendingSplits[self.currentHeigth()])
+            if self.needToSplit():
+                if self.currentNode.isANode():
+                    lastSplit = self.splitNode(lastSplit)
+                    return RtreePlusSplitStatus(self, lastSplit)
+                else:
+                    lastSplit = self.splitLeaf(lastSplit)
+                    return RtreePlusSplitStatus(self, lastSplit)
+            else:
+                self.insertChild(lastSplit)
+                return RtreePlusAdjustStatus(self)
 
-        self.pa.partitionPlus()
-
-        currentMbr   = self.currentNode.getMbr()
-        children     = self.currentNode.getChildren() # Tuplas (Mbr,Puntero) de la hoja seleccionada
-
-        currentMbr.expand(mbrPointer.getMbr()) # expandimos el mbr del nodo (u hoja) seleccionado, para simular insercion
-        partitionData = self.pa.partition(currentMbr, children + [mbrPointer], self.m(), leafMode) # efectuamos la particion de elementos agregando el elemento a insertar
-
-        self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
-        newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
-
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
-
-        treeMbrPointer = newRtree.getMbrPointer()
-        return treeMbrPointer
-
-
-        for split in self.pendingSplits[self.currentHeigth()]:
-
-            self.pa.partitions()
-    '''
-
-
-    def splitNode(self, mbrPointers):
+    # Gatilla split en nodo, propaga split de nodos hijos de ser necesario y retorna el mbrPointer del nuevo nodo
+    def splitNode(self, lastSplit):
+        mbrPointers = self.currentNode.getChildren() + [lastSplit]
         partitionData = self.pa.partition(self.currentNode.getMbr(), mbrPointers, self.m())
         self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newNode = self.newNode()
         newNode.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
 
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newNode)          # Guardo el nuevo nodo (u hoja) en disco
-
-        newMbrPointer = newNode.getMbrPointer()
-        self.propagateSplitUpwards(newMbrPointer)
+        self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.save(newNode)           # Guardo el nuevo nodo (u hoja) en disco
 
         if self.pa.needsToSplitChilds():
-            self.propagateSplitDownwards(self.pa.getRecursiveSplits(), self.pa.getCut(), self.pa.getDim())
+            for child in self.pa.getRecursiveSplits():
+                self.seekNode(child)
+                self.markNodeAsVisited(child)
+                lastStatus = self.propagateSplitDownwards(self.pa.getCut(), self.pa.getDim())
+                while lastStatus != None:
+                    lastStatus = lastStatus.handle() # manejo splits o ajustes hasta donde corresponda
+                self.chooseParent() # destructiveMode = True
+        return newNode.getMbrPointer() # retorno el mbr que debo insertar en el padre
 
-    def splitLeaf(self, mbrPointers):
+    # Gatilla split en hoja y retorna el mbrPointer de la nueva hoja
+    def splitLeaf(self, lastSplit):
+        mbrPointers = self.currentNode.getChildren() + [lastSplit]
         partitionData = self.pa.partition(self.currentNode.getMbr(), mbrPointers, self.m(), True) # leafMode = True
         self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newLeaf = self.newLeaf()
         newLeaf.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
 
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newLeaf)          # Guardo el nuevo nodo (u hoja) en disco
+        self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.save(newLeaf)          # Guardo el nuevo nodo (u hoja) en disco
 
-        newMbrPointer = newLeaf.getMbrPointer()
-        return newMbrPointer
-        # self.propagateSplitUpwards(newMbrPointer)
+        return newLeaf.getMbrPointer()
 
-    # Maneja split
-    def split(self, mbrPointers):
-        if self.currentNode.isANode():
-            self.splitNode(mbrPointers)
+    def splitNodeByCut(self, cut, dim):
+        mbrPointers = self.currentNode.getChildren()
+        partitionData = self.pa.partitionOnCut(mbrPointers, cut, dim)
+
+        newNode = self.newNode() # Creo un hermano que contendra los mbrs de su corte respectivo
+
+        self.currentNode.setDataChildren(partitionData[0]) # Cambio el nodo actual a la nueva particion (se mantiene su mbr)
+        newNode.setDataChildren(partitionData[1])
+
+        self.save(self.currentNode) # Guardo el nodo en disco
+        self.save(newNode)
+
+        return newNode.getMbrPointer()
+
+    def propagateSplitDownwards(self, cut, dim):
+        if self.currentNode.isALeaf():
+            # No hay nada mas que hacer
+            return RtreePlusStatus(self)
         else:
-            self.splitLeaf(mbrPointers)
+            newBrother = self.splitNodeByCut(cut, dim)
+            # Se efectuan splits de nodos de forma recursiva a los hijos y se manejan ajustes
+            if self.pa.needsToSplitChilds():
+                for nextChild in self.pa.getRecursiveSplits():
+                    self.seekNode(nextChild)
+                    self.markNodeAsVisited(nextChild)
+                    nextStatus = self.propagateSplitDownwards(cut, dim)
+                    while nextStatus != None:
+                        nextStatus = nextStatus.handle()
+                    self.chooseParent() # destructive = True
 
-    def propagateSplitDownwards(self, recSplits, cut, dim):
-        for r in recSplits:
-            self.seekNode(r)
-            self.splitNodeOnCut()
-        pass
+            # Y ahora se prepara insercion del nuevo hermano en el nodo padre actual
+            self.chooseParent()
+            if self.currentNode.needToSplit():
+                return RtreePlusSplitStatus(newBrother)
+            else:
+                self.insertChild(newBrother)
+                return RtreePlusAdjustStatus(self.currentNode.getMbrPointer())
 
-    def propagateSplitUpwards(self):
-        pass
 
-    def splitOnCut(self, cut, dim):
-        partitionData = self.pa.partitionOnCut(self.currentNode.getMbr(), self.currentNode.getChildren())
-
-    def splitChildren(self, children, cut, dim):
-        for child in children:
-            self.seekNode(child.getPointer())
-
-            if self.currentNode.isANode():
-                self.split(self.newNode(), )
-
-if __name__=="__main__":
+if __name__ == "__main__":
     d = 2
     M = 100
-    rtree = RtreePlus(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    rtree = RtreePlus(d = d, M = 10, maxE = 10**6, reset = True, initOffset = 0)
 
     objects = [randomMbrPointer(d) for i in range(200)]
 
     for o in objects:
         rtree.insert(o)
+
+    # print(rtree)
