@@ -1,0 +1,1330 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass scrbook
+\begin_preamble
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lfoot{\thepage}
+\end_preamble
+\options tablecaptionabove 
+\use_default_options true
+\begin_modules
+theorems-ams
+customHeadersFooters
+tabs-within-sections
+eqs-within-sections
+figs-within-sections
+\end_modules
+\maintain_unincluded_children false
+\language spanish-mexico
+\language_package babel
+\inputencoding utf8
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 2
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Left Header
+
+\lang spanish
+CC4102 - Diseño y análisis de algoritmos
+\end_layout
+
+\begin_layout Right Header
+
+\lang spanish
+Tarea 1
+\end_layout
+
+\begin_layout Left Footer
+
+\lang spanish
+DCC, Universidad de Chile
+\end_layout
+
+\begin_layout Titlehead
+
+\lang spanish
+\begin_inset Graphics
+	filename E:/Injeniería/Cosas/Logos/dcc_big_trans.png
+	lyxscale 10
+	scale 20
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subject
+
+\lang spanish
+Tarea 1
+\end_layout
+
+\begin_layout Title
+
+\lang spanish
+Inserción y busqueda en 
+\begin_inset Formula $R-Tree$
+\end_inset
+
+ y 
+\begin_inset Formula $R^{+}-Tree$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+
+\lang spanish
+Ian Yon Yon
+\begin_inset Newline newline
+\end_inset
+
+Cristián Carreño
+\end_layout
+
+\begin_layout Subtitle
+
+\lang spanish
+CC4102 - Diseño y análisis de algoritmos
+\end_layout
+
+\begin_layout Publishers
+
+\lang spanish
+Profesor: Gonzalo Navarro
+\begin_inset Newline linebreak
+\end_inset
+
+Auxiliar: Teresa Bracamonte
+\end_layout
+
+\begin_layout Chapter
+
+\lang spanish
+Introducción 
+\end_layout
+
+\begin_layout Section
+
+\lang spanish
+Redes neuronales artificiales
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Las redes neuronales artificiales (RNA) son sistemas de aprendizaje que
+ intentan imitar a las redes neuronales biológicas presentes en el sistema
+ nervioso de los animales.
+ Las RNA pueden tener diferentes configuraciones de las neuronas, según
+ el uso que se le dará.
+ Una configuración típica y la que se usara en este trabajo es la red 
+\begin_inset Quotes eld
+\end_inset
+
+FeedForward
+\begin_inset Quotes erd
+\end_inset
+
+ donde las neuronas se organizan en capas que se conectan secuencialmente
+ con las capas siguientes hasta producir una salida.
+ Sus elementos principales son:
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Neurona: Es la unidad funcional básica con la que se construyen las redes.
+ El modelo más utilizado es el perceptrón.
+ Consta de la sumatoria de las entradas ponderadas por ciertos coeficientes,
+ la que es pasada como argumento a una función de activación que determina
+ si la neurona se activa o no.
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Pesos: Son los coeficientes que ponderan cada entrada a una neurona y que
+ deben ser ajustados para entrenar la red.
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Bias: Es una entrada extra que se agrega a la entrada de cada neurona con
+ un valor por defecto que sirve para manejar mejor el comportamiento de
+ esta.
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Función
+\begin_inset space ~
+\end_inset
+
+de
+\begin_inset space ~
+\end_inset
+
+activación: Es la función que decide si la neurona se activa ante determinada
+ entrada (y cuanto se activa).
+ Existen varias comúnmente usadas: Sigmoidea logarítmica, Sigmoidea Tangente,
+ lineal, escalón, etc.ada: Es el arreglo de neuronas que reciben el vector
+ de entrada a la red (comúnmente el vector de características)
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Capa
+\begin_inset space ~
+\end_inset
+
+oculta: Son los arreglos de neuronas que reciben secuencialmente las salidas
+ de las neuronas de la capa anterior.
+ Se llaman así porque uno no tiene acceso directo a las salidas de estas
+ capas
+\end_layout
+
+\begin_layout Description
+
+\lang spanish
+Capa
+\begin_inset space ~
+\end_inset
+
+de
+\begin_inset space ~
+\end_inset
+
+salida: Es la ultima capa de la red que entrega la salida de la red.
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Para la capa oculta existen diferentes opiniones sobre valores razonables
+ en el número de neuronas, por ejemplo se ha señalado que el número de neuronas
+ en la capa oculta no debe exceder el doble del número de neuronas de la
+ capa de entrada, así como que un valor razonable es el promedio de las
+ neuronas de la capa de entrada con las de la capa de salida.
+ En este caso se probara con el promedio: 13 neuronas.
+\end_layout
+
+\begin_layout Subsection
+
+\lang spanish
+BackPropagation
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Para poder entrenar una red neuronal es necesario ajustar los pesos de los
+ enlaces entre neuronas, de forma que se corrijan ante una salida errónea,
+ sin embargo la única capa en contacto directo con la salida es la capa
+ de salida, por lo que es necesario propagar el error de una salida hacia
+ atrás en la red para que también se vean afectados los pesos de las capas
+ interiores.
+ El algoritmo que realiza esto se llama 
+\begin_inset Quotes eld
+\end_inset
+
+BackPropagation
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Para conseguir esto, se utiliza el Error Cuadrático Medio (ECM), que suma
+ el error de cada neurona de salida, como medida del error en la salida
+ de la red.
+ Entonces en la primera fase del algoritmo se computa la salida de la red
+ (inicializando los pesos aleatoriamente) y en la segunda fase se propaga
+ el error hacia atrás actualizando los pesos.
+ Si notamos 
+\begin_inset Formula $w_{ij}$
+\end_inset
+
+ como el peso del enlace entre la neurona i de la capa de entrada y la neurona
+ j de la capa oculta y 
+\begin_inset Formula $v_{ij}$
+\end_inset
+
+ análogamente para la capa oculta y de salida.Tenemos que la variación necesaria
+ en el peso del enlace cumple que:
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+\begin_inset Formula 
+\[
+\Delta w_{ij}\propto\frac{\partial E}{\partial w_{ij}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Donde E es el ECM.
+ Usando la regla de la cadena:
+\end_layout
+
+\begin_layout Standard
+
+\size largest
+\lang spanish
+\begin_inset Formula 
+\[
+\begin{array}{cc}
+\frac{\partial E}{\partial w_{ij}}=\frac{\partial E}{\partial a_{i}}\cdot\frac{\partial a_{i}}{\partial w_{ij}}\qquad & \qquad\frac{\partial E}{\partial v_{ij}}=\frac{\partial E}{\partial u_{i}}\cdot\frac{\partial u_{i}}{\partial v_{ij}}\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Donde 
+\begin_inset Formula $a_{j}=\sum_{i}w_{ji}z_{i}$
+\end_inset
+
+ y 
+\begin_inset Formula $u_{j}=\sum_{i}v_{ji}x_{i}$
+\end_inset
+
+ son los argumentos de las respectivas funciones de activación.
+ Luego podemos calcular estos términos sabiendo que:
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+\begin_inset Formula 
+\[
+\frac{\partial E}{\partial a_{i}}=g'(a_{i})\frac{\partial E}{\partial y_{i}}\qquad\frac{\partial E}{\partial u_{i}}=-\sum_{j}\frac{\partial E}{\partial a_{i}}\cdot\frac{\partial a_{i}}{\partial u_{i}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Lo que desarrollando da:
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+\begin_inset Formula 
+\[
+\frac{\partial a_{i}}{\partial w_{ij}}=z_{j}\qquad\frac{\partial u_{i}}{\partial v_{ij}}=x_{j}\qquad\frac{\partial E}{\partial a_{i}}=g'(a_{i})\left(d_{i}-y_{i}\right)\qquad\frac{\partial E}{\partial u_{i}}=-g'(u_{i})\sum_{j}w_{ij}\frac{\partial E}{\partial a_{i}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Donde 
+\begin_inset Formula $d_{i}$
+\end_inset
+
+ es la salida deseada de la neurona 
+\begin_inset Formula $i$
+\end_inset
+
+ y 
+\begin_inset Formula $g'$
+\end_inset
+
+ es el jacobiano de la función de activación (por lo que es necesario que
+ esta sea diferenciable).
+ De las ecuaciones se puede ver que para calcular el cambio en las primeras
+ capas es necesario calcular el cambio en las últimas neuronas primero.
+ Luego para tener el valor final de la actualización queda:
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+\begin_inset Formula 
+\[
+\Delta w_{ij}=\eta\frac{\partial E}{\partial w_{ij}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Donde 
+\begin_inset Formula $\eta\epsilon\left(0,1\right)$
+\end_inset
+
+ es la tasa de aprendizaje y es un parámetros a fijar.
+\end_layout
+
+\begin_layout Subsection
+
+\lang spanish
+Sobre-Entrenamiento
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Sobre-entrenamiento es cuando una red neuronal disminuye mucho su error
+ de entrenamiento, lo que le impide generalizar para nuevas entradas y por
+ tanto aumenta su error ante estas.
+ Para manejar esto la red al entrenarse se le muestra también el conjunto
+ de validación, de forma de entrenar hasta que el error sobre este conjunto
+ alcance un mínimo.
+ Puede ser que al hacer esto el error sobre el conjunto de entrenamiento
+ no haya alcanzado los valores deseados, pero para poder solucionar esto
+ es necesario cambiar los parámetros de la red ya que si siguiéramos entrenando
+ solo empeoraría su comportamiento en ejecución.
+\end_layout
+
+\begin_layout Subsection
+
+\lang spanish
+Matriz de confusión
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Es una forma de ver el comportamiento de un clasificador y la forma en que
+ clasifica cada clase.
+ Por ejemplo para el caso de clases de animales tenemos la siguiente matriz
+ de confusión:
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="5">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Predicción
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Gato
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Perro
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Conejo
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="3" alignment="left" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Realidad
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Gato
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Perro
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Conejo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+11
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\lang spanish
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+\lang spanish
+Ejemplo matriz de confusión
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+En la tabla 1.1 se puede ver que para la clase 
+\begin_inset Quotes eld
+\end_inset
+
+Gato
+\begin_inset Quotes erd
+\end_inset
+
+, 5 veces el clasificador predijo correctamente la clase, y 3 veces se equivoco
+ señalando que la clase era en realidad 
+\begin_inset Quotes eld
+\end_inset
+
+Perro
+\begin_inset Quotes erd
+\end_inset
+
+.
+ De esta forma la matriz muestra en la diagonal la tasa de verdaderos positivos
+ para cada clase, y la suma del resto de la fila sería la tasa de falsos
+ negativos.
+ Si en la celda 
+\begin_inset Formula $\left[1,2\right]$
+\end_inset
+
+ fuera 5 en vez de 3 veríamos claramente como el clasificador confunde la
+ clase 
+\begin_inset Quotes eld
+\end_inset
+
+Gato
+\begin_inset Quotes erd
+\end_inset
+
+ con 
+\begin_inset Quotes eld
+\end_inset
+
+Perro
+\begin_inset Quotes erd
+\end_inset
+
+, y se podrían tomar medidas para mejorar esa falencia.
+\end_layout
+
+\begin_layout Section
+
+\lang spanish
+Objetivos
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Se pretende entrenar una RNA para reconocer dígitos escritos a mano a partir
+ de una base de datos con 16 características por dígito, y también aprender
+ a determinar los parámetros de la red, y la sensibilidad de la respuesta
+ frente a variaciones en el numero de neuronas.
+\end_layout
+
+\begin_layout Chapter
+
+\lang spanish
+Implementación
+\end_layout
+
+\begin_layout Section
+División de conjuntos
+\end_layout
+
+\begin_layout Standard
+Primero debemos dividir los conjuntos en entrenamiento (80%) y prueba (20%)
+ de forma de mantener la proporción de cada clase del conjunto original
+ en cada uno de estos conjuntos.
+ Para esto se usa la función :
+\end_layout
+
+\begin_layout LyX-Code
+[Train Test,TrainC,TestC]=dividirConj(trazos,digitos)
+\end_layout
+
+\begin_layout Standard
+Esta función entrega el conjunto de entrenamiento 
+\begin_inset Quotes eld
+\end_inset
+
+Train
+\begin_inset Quotes erd
+\end_inset
+
+, el de prueba 
+\begin_inset Quotes eld
+\end_inset
+
+Test
+\begin_inset Quotes erd
+\end_inset
+
+, y la clase para cada uno en 
+\begin_inset Quotes eld
+\end_inset
+
+TrainC
+\begin_inset Quotes erd
+\end_inset
+
+ y 
+\begin_inset Quotes eld
+\end_inset
+
+TestC
+\begin_inset Quotes erd
+\end_inset
+
+ respectivamente.
+ Para esto se calcula el número de elementos que corresponde a la proporción
+ de cada clase y se agrega esa cantidad a cada conjunto.
+\end_layout
+
+\begin_layout Section
+Clasificador Multiclase
+\end_layout
+
+\begin_layout Standard
+Para la red neuronal se setearon los siguiente parámetros de parada del
+ algoritmo:
+\end_layout
+
+\begin_layout LyX-Code
+net.trainParam.epochs = 50; 
+\end_layout
+
+\begin_layout LyX-Code
+net.trainParam.showWindow = 1; 
+\end_layout
+
+\begin_layout LyX-Code
+net.trainParam.goal = 0;  
+\end_layout
+
+\begin_layout LyX-Code
+net.trainParam.max_fail=10; 
+\end_layout
+
+\begin_layout LyX-Code
+net.trainParam.min_grad=1e-6;
+\end_layout
+
+\begin_layout Standard
+Esto significa que pararemos cuando el error sea 0, cuando se hayan realizado
+ 50 épocas, cuando los errores de validación sean como máximo 10 y cuando
+ el gradiente sea menor a 1e-6.
+\end_layout
+
+\begin_layout Standard
+Si graficamos el error del conjunto de validación (superior) y el de entrenamien
+to (inferior) tenemos:
+\end_layout
+
+\begin_layout Standard
+Podemos ver como el error de entrenamiento es menor que el de validación
+ porque a medida que se va ajustando la red al conjunto de entrenamiento
+ pierde su capacidad de generalización.
+ El gráfico muestra en un circulo el punto optimo, cuando el error de validación
+ alcanza su mínimo.
+\end_layout
+
+\begin_layout Standard
+Y la matriz de confusión:
+\end_layout
+
+\begin_layout Standard
+De la matriz se ve que el sistema clasifica correctamente más del 90% de
+ las entradas.
+ Por lo que se comporta aceptablemente para aplicaciones que no requieran
+ demasiada precisión.
+\end_layout
+
+\begin_layout Section
+Variación de parámetros
+\end_layout
+
+\begin_layout Standard
+A continuación variamos el número de neuronas en la capa oculta entre 
+\begin_inset Formula $\left[10,20,30,40\right]$
+\end_inset
+
+ para ver como se comporta la red y si podemos mejorar los resultados.
+ Obtenemos los siguientes gráficos de performance:
+\end_layout
+
+\begin_layout Standard
+Y las siguientes matrices de confusión:
+\end_layout
+
+\begin_layout Standard
+Podemos comentar que en las 3 primeras pruebas el algoritmo paro debido
+ a los errores de validación, lo que quiere decir que el conjunto de validación
+ comenzó a incrementarse sostenidamente.
+ Sin embargo en la ultima se detuvo porque el gradiente fue menor que la
+ cota fijada, lo que significa que los incrementos en performance del algoritmo
+ son considerados despreciables en lo consiguiente y por tanto se detiene.
+ 
+\end_layout
+
+\begin_layout Standard
+Para este caso, como se trata de un clasificador de dígitos, no existe costos
+ asociados a equivocarse en una clase u otra, por lo que usaremos el TPR
+ de las diferentes configuraciones para compararlas, así como el ECM:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="6">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+# Neuronas
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+13
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+20
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+40
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Tiempo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1:08
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1:21
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2:02
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2:54
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3:47
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Error
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.011044
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0046147
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0020694
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0025358
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0016665
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+TPR
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+92%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+97.4%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+98.1%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+98.6%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+99%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Tabla comparación neuronas en capa oculta
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Podemos ver que a medida que aumentamos el número de neuronas aumenta el
+ tiempo, aumenta el TPR y disminuye el ECM, por lo que apresuradamente podríamos
+ decir que nos conviene aumentar las neuronas para obtener mejores resultados,
+ sin embargo si hiciéramos esto, llegaría un momento donde el tiempo que
+ tome el algoritmo seria inaceptable, además necesitaríamos una base de
+ datos más grande para poder hacer el entrenamiento.
+ También podemos ver que el incremento en el TPR es cada vez menor por lo
+ que llegara un momento que no nos interese ese incremento mínimo con su
+ costo asociado en tiempo y memoria computacional.
+ 
+\end_layout
+
+\begin_layout Standard
+Una red neuronal con las condiciones presentes es un aproximador universal,
+ por lo que si se tienen las suficientes neuronas se puede aproximar cualquier
+ función, sin embargo ajustarse mejor al conjunto de entrenamiento hace
+ perder capacidad de generalización, por lo que hay que tener en cuenta
+ la flexibilidad de la red.
+\end_layout
+
+\begin_layout Standard
+Es importante notar que como los pesos de la red se inicializan aleatoriamente
+ y también se le presentan los ejemplos de forma aleatoria, cada vez que
+ se entrene la red se obtendrán resultados diferentes, y puede que se encuentren
+ otros mínimos locales que hagan parar al algoritmo por motivos diferentes
+ a los que aquí se presentan.
+\end_layout
+
+\begin_layout Chapter
+
+\lang spanish
+Conclusiones
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Se comprueba que hay varios parámetros que fijar en el entrenamiento de
+ RNA.
+ En este trabajo se dejaron fijos las implementaciones de BackPropagation
+ y la función de activación sin embargo hay varias opciones para elegir
+ entre estas, cada una para determinados tipos de problemas y con sus caracterís
+ticas particulares.
+ El algoritmo usado 
+\begin_inset Quotes eld
+\end_inset
+
+trainlm
+\begin_inset Quotes erd
+\end_inset
+
+ es bastante rápido por lo que sirve para comparar diferentes redes, y la
+ función de activación 
+\begin_inset Quotes eld
+\end_inset
+
+tansig
+\begin_inset Quotes erd
+\end_inset
+
+ sirve para valores positivos y negativos, mientras que 
+\begin_inset Quotes eld
+\end_inset
+
+logsig
+\begin_inset Quotes erd
+\end_inset
+
+ solo para valores positivos.
+ En un comienzo se probo con 
+\begin_inset Quotes eld
+\end_inset
+
+logsig
+\begin_inset Quotes erd
+\end_inset
+
+ pero no se obtenían buenos resultados porque algunos de los elementos del
+ vector de características son cero.
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Matlab proporciona un sinnúmero de herramientas para el entrenamiento de
+ redes neuronales de diferentes tipos y con diferentes propósitos, y también
+ provee una interfaz gráfica para estos, que facilita la comprensión del
+ proceso y la modificación de parámetros en caso de errores.
+\end_layout
+
+\end_body
+\end_document

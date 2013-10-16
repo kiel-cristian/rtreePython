@@ -16,7 +16,7 @@ class Rtree(RtreeApi):
         t0 = time()
 
         # Bajo por el arbol hasta encontrar una hoja adecuada
-        while not self.currentNode.isALeaf():
+        while self.currentNode.isANode():
             next = self.chooseTree(mbrPointer)
             self.seekNode(next) # cambia currentNode
 
@@ -24,15 +24,11 @@ class Rtree(RtreeApi):
             newLeafMbrPointer = self.split(self.newLeaf(), mbrPointer)
             self.propagateSplit(newLeafMbrPointer) # propago hacia el padre el split
         else:
-            self.update(mbrPointer)
+            self.insertChild(mbrPointer)
             self.propagateAdjust() # ajusta mbrs hasta la raiz
 
         t1 = time()
-        if self.meanInsertionTime == None:
-          self.meanInsertionTime = t1-t0
-        else:
-          self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
-          self.insertionsCount = self.insertionsCount +1
+        self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
         self.goToRoot()
 
@@ -53,21 +49,19 @@ class Rtree(RtreeApi):
         treeMbrPointer = newRtree.getMbrPointer()
         return treeMbrPointer
 
-
-
 if __name__=="__main__":
     d = 2
     M = 100
     rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
-    objects = [randomMbrPointer(d) for i in range(1000)]
+    objects = [randomMbrPointer(d) for i in range(13)]
     print("Data generada")
 
     for o in objects:
         rtree.insert(o)
 
-    # print(rtree)
-    rtree.printTree()
+    print(rtree)
+    #print("propagateSplit")rtree.printTree()
 
     r = 0.25
     print(randomRadialMbr(d,r))
