@@ -7,8 +7,9 @@ import io
 import random
 import struct
 from Rtree import *
-from Mbr import *
+from MbPointer import *
 import datetime
+from RadialMbr import *
 
 def generateObjects(name, numElems, dimension):
   f = io.open(name, 'wb')
@@ -32,7 +33,7 @@ if __name__ == '__main__':
         for s in range (10):
             mTree.search(randomRadialMbr(2,0.25 * (2 ** 0.5)))
     f = open("Resultados.txt", 'w+')
-    f.write(now.strftime("%Y-%m-%d %H:%M"))
+    f.write(now.strftime("%Y-%m-%d %H:%M")+ "\n")
     for partitionType in [0,1,2]:
       for d in [2, 4, 8, 16]:
           for M in [50, 100]:
