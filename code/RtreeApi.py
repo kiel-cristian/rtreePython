@@ -202,7 +202,7 @@ class RtreeApi(object):
             selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
-                results = results + self.searchR(radialMbr, results)
+                results = self.searchR(radialMbr, results)
         else:
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
