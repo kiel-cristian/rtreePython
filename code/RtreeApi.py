@@ -73,7 +73,7 @@ class RtreeApi(object):
         leaf2 = self.newLeaf()
 
         # Reservo un espacio en memoria para el nodo actual
-        self.allocate()
+        self.allocateTree()
 
         # Guardo dos hojas de la raiz en disco
         self.save(leaf1)
@@ -243,7 +243,7 @@ class RtreeApi(object):
     def seekNode(self, mbrPointer):
         pointer = mbrPointer.getPointer()
 
-        if len(cache) > self.k:
+        if len(self.cache) > self.k:
             self.cache[self.k - 1] = self.currentNode
         else:
             self.cache = self.cache + [self.currentNode]
@@ -271,39 +271,6 @@ class RtreeApi(object):
     def chooseTreeForSearch(self, mbrO):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.radialSelect(mbrO, childrenMbrs)
-
-    # Propaga el split hasta donde sea necesario
-    def propagateSplit(self, splitMbrPointer):
-        lastSplit = splitMbrPointer
-        lastNode = self.currentNode
-
-        while self.currentHeigth() >= 0:
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(lastNode.getMbrPointer())
-
-            if self.needToSplit():
-                lastSplit = self.split(self.newNode(), lastSplit)
-
-                # Se llego a la raiz
-                if self.currentHeigth() == 0:
-                    self.makeNewRoot(lastSplit)
-                    break
-                lastNode  = self.currentNode
-            else:
-                self.insertChild(lastSplit)
-                break
-        self.propagateAdjust()
-        self.goToRoot()
-
-    # Ajusta mbrs de todos los nodos hasta llegar a la raiz
-    def propagateAdjust(self):
-        while self.currentHeigth() > 0:
-            childMbrPointer = self.currentNode.getMbrPointer()
-
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
     def incrementMeanSearchTime(self, delta):
       if self.meanSearchTime == None:
