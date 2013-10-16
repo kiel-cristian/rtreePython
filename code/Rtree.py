@@ -28,12 +28,7 @@ class Rtree(RtreeApi):
             self.propagateAdjust() # ajusta mbrs hasta la raiz
 
         t1 = time()
-        if self.meanInsertionTime == None:
-          self.meanInsertionTime = t1-t0
-        else:
-          self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
-          self.insertionsCount = self.insertionsCount +1
-
+        self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
         self.goToRoot()
 
@@ -53,8 +48,6 @@ class Rtree(RtreeApi):
 
         treeMbrPointer = newRtree.getMbrPointer()
         return treeMbrPointer
-
-
 
 if __name__=="__main__":
     d = 2

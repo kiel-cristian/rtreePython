@@ -26,23 +26,32 @@ def generateData():
 
 if __name__ == '__main__':
     # generateData()
-  f = open("Resultados.txt", 'w+')
-  for d in range(1, 9):
-    mTree = Rtree(2 ** d)
-    for n in range (1, 11):
-      f.write("d n meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
-      # Construyo el Rtree con los elementos
-      for s in range (n * 10 ** 5):
-        m = Mbr(2 ** d)
-        m.setPoint([random.random() for _ in range(2 ** d)])
-        mTree.insert(m)
-      f.write("%d %d %f %f %f %f\n" % (mTree.d, n * 10 ** 5, mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
-      f.write("d n meanVisited meanQueryTime\n")
-      # Construyo los elementos de consulta
-      for s in range (n * 10 ** 3):
-        obj = [random.random() for _ in range(2 ** d)]
-        for radio in [0.01, 0.10, 0.25, 0.50, 0.75, 0.90, 0.99]:
-          mTree.search(radio * (d ** 0.5), obj)
-      f.write("%d %d %f %f\n" % (mTree.d, n * 10 ** 3, mTree.computeMeanNodes(), mTree.meanSearchTime))
-          
-  pass
+  f = open("Resultados.txt", 'w')
+  for M in [50,100]:
+    mTree = Rtree(2 ** 2,M)
+    f.write("d meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
+    # Construyo el Rtree con los elementos
+    for s in range (10 ** 5):
+      m = Mbr(2 ** 2)
+      m.setPoint([random.random() for _ in range(2 ** 2)])
+      mTree.insert(m)
+    f.write("%d %f %f %f %f\n" % (mTree.d, mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
+#   f = open("Resultados.txt", 'w+')
+#   for d in [2,4,8,16]:
+#     for M in [50,100]:
+#       mTree = Rtree(2 ** d,M)
+#       f.write("d meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
+#       # Construyo el Rtree con los elementos
+#       for s in range (10 ** 5):
+#         m = Mbr(2 ** d)
+#         m.setPoint([random.random() for _ in range(2 ** d)])
+#         mTree.insert(m)
+#       f.write("%d %f %f %f %f\n" % (mTree.d, mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
+#       f.write("d meanVisited meanQueryTime\n")
+#       # Construyo los elementos de consulta
+#       for radio in [0.25, 0.50, 0.75]:
+#         for n in range (1,6):
+#           for s in range (n * 10 ** 3):
+#             obj = [random.random() for _ in range(2 ** d)]
+#             mTree.search(radio * (d ** 0.5), obj)
+#           f.write("%d %f %f\n" % (mTree.d, mTree.computeMeanNodes(), mTree.meanSearchTime))
