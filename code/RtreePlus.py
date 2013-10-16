@@ -1,6 +1,7 @@
 # encoding: utf-8
 from SelectionManager import *
 from RtreeApi import *
+from MbrGenerator import *
 
 # Clases auxiliares para manejar estados posibles posteriores a una insercion recursiva.
 # La idea de usar estas estructuras es la de manejar los casos de borde sin salir de la recursion principal
@@ -231,9 +232,21 @@ if __name__ == "__main__":
     M = 100
     rtree = RtreePlus(d = d, M = 10, maxE = 10**6, reset = True, initOffset = 0)
 
-    objects = [randomMbrPointer(d) for i in range(200)]
+    gen = MbrGenerator()
+    objects = [gen.next(d) for i in range(100)]
+    print("Data generada")
 
     for o in objects:
         rtree.insert(o)
 
-    # print(rtree)
+    '''
+    print(rtree)
+    r = 0.25
+    print(gen.nextRadial(d, r))
+    print("Search Results")
+    randomMbr = gen.nextRadial(d, r)
+    results = rtree.search(randomMbr)
+    for m in results:
+        print("d: " + str(randomMbr.distanceTo(m)))
+        print("\t" + (str(m)))
+    '''

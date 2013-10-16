@@ -1,4 +1,3 @@
-import random
 from MbrApi import *
 from Mbr import Mbr
 
@@ -32,7 +31,3 @@ class MbrPointer(MbrApi):
         return self.getMbr().areIntersecting(mbrPointer.getMbr())
     def getCenter(self):
         return self.getMbr().getCenter()
-
-def randomMbrPointer(d):
-    randomPoint = [random.random() for _ in range(d)]
-    return MbrPointer(Mbr(d).setPoint(randomPoint), int(randomPoint[0]*1000))

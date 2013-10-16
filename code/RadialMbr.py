@@ -1,4 +1,3 @@
-import random
 from math import sqrt
 from math import pi
 from MbrApi import *
@@ -35,6 +34,3 @@ class RadialMbr(MbrApi):
         return pi*self.r**2/2
     def areIntersecting(self,mbrObject):
         return self.distanceTo(mbrObject) <= self.r
-
-def randomRadialMbr(d, r):
-    return RadialMbr(d, [random.random() for _ in range(d)], r)
