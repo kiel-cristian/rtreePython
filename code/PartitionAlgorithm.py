@@ -80,9 +80,10 @@ class LinealPartition(PartitionAlgorithm):
     candidates = []
     candidatesIndex = []
     candidatesLen = 0
+    length = len(mbrPointerList)
 
     # Obtenemos candidatos para semillas con los que estan en los bordes del mbr padre
-    for i in range(0, len(mbrPointerList)):
+    for i in range(length):
       mbr = mbrPointerList[i]
       for d in range(mbrParent.d):
         if mbr.getMin(d) == mbrParent.getMin(d) or mbr.getMax(d) == mbrParent.getMax(d):
@@ -91,15 +92,18 @@ class LinealPartition(PartitionAlgorithm):
           candidatesLen = candidatesLen + 1
 
     if candidatesLen == 2:
-      return [candidates, []]
-    if candidatesLen < 2:
-      raise PartitionError("Se detectaron menos de 2 candidatos para particionar")
+      return candidatesIndex
+
+    if candidatesLen < 2: # 1 mbr abarca toda el area!
+      candidates = mbrPointerList[:]
+      candidatesLen = length
+      candidatesIndex = [i for i in range(length)]
 
     seedsIndex = [None , None]
     actDist = 0;
     maxDistance = 0
     # Calculamos la máxima distancia entre los candidatos
-    for i in range(0, candidatesLen):
+    for i in range(candidatesLen):
       for j in range(i + 1, candidatesLen):
         actDist = candidates[i].distanceTo(candidates[j])
         if actDist > maxDistance:
@@ -139,7 +143,7 @@ class CuadraticPartition(PartitionAlgorithm):
     actualDeadSpace = 0;
     maxDeadSpace = 0
     # Calculamos el máximo espacio muerto
-    for i in range(0, length):
+    for i in range(length):
       for j in range(i + 1, length):
         actualDeadSpace = mbrPointerList[i].deadSpace(mbrPointerList[j])
         if actualDeadSpace > maxDeadSpace:
