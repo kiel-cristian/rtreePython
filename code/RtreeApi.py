@@ -83,7 +83,7 @@ class RtreeApi(object):
                 children = tree.getChildren()
                 for child in children:
                     childTree = self.nfh.readTree(child.getPointer())
-                    s = s + toStr(childTree, s, l + 1, i)
+                    s = toStr(childTree, s, l + 1, i)
                     i = i + 1
             else:
                 i = 0
@@ -132,14 +132,13 @@ class RtreeApi(object):
         newRoot = self.newNode()
         newRoot.setAsRoot(0) # raiz siempre en comienzo del archivo
 
+        self.nfh.reAllocate(self.currentNode)
+
         newRoot.insert(self.currentNode.getMbrPointer())
         newRoot.insert(childMbrPointer)
+        self.save(newRoot)
 
-        child = self.nfh.readTree(childMbrPointer.getPointer())
-
-        self.nfh.swapTrees(newRoot, child)
         self.root        = newRoot
-
         self.cache = [newRoot]
         self.k     = 1
 
