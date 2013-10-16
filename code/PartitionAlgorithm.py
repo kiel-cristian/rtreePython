@@ -90,6 +90,7 @@ class LinealPartition(PartitionAlgorithm):
           candidates = candidates + [mbr]
           candidatesIndex = candidatesIndex + [i]
           candidatesLen = candidatesLen + 1
+          break
 
     if candidatesLen == 2:
       return candidatesIndex
@@ -99,7 +100,7 @@ class LinealPartition(PartitionAlgorithm):
       candidatesLen = length
       candidatesIndex = [i for i in range(length)]
 
-    seedsIndex = [None , None]
+    seedsIndex = [0 , 1]
     actDist = 0;
     maxDistance = 0
     # Calculamos la máxima distancia entre los candidatos

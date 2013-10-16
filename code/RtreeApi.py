@@ -1,5 +1,6 @@
 # encoding: utf-8
 from math import log
+from math import ceil
 import sys
 import struct
 from FileHandler import *
@@ -32,27 +33,27 @@ class RtreeApi(object):
 
       self.cache = []                             # cache: lista de nodos visitados
       self.k = 0                                  # k: nodos en cache
-      self.H = log(maxE, self.M()) -1             # H: altura maxima del arbol
-      
+      self.H = ceil(log(maxE, self.M())) -1             # H: altura maxima del arbol
+
       #Metricas
       #Mean insertion time
       self.meanInsertionTime = None
       self.insertionsCount = 0
-      
+
       #Mean internal and external nodes
       self.internalNodeCount = 0
       self.leafCount = 0
-      
+
       #Mean search time
       self.meanSearchTime = None
       self.searchCount = 0
-      
+
       #Mean visited nodes
       self.visitedNodes = 0
-      
+
       #Mean splits per node
       self.splitCount = 0
-      
+
       self.meanTotalNodes = 0
       self.meanInternalNodes = 0
 
@@ -61,7 +62,7 @@ class RtreeApi(object):
           self.resetRoot()
       else:
           # Se carga la raiz de disco
-          self.getRoot(initOffset)      
+          self.getRoot(initOffset)
 
     def resetRoot(self):
         # Se construye una raiz vacia
