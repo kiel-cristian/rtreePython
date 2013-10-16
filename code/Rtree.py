@@ -48,8 +48,8 @@ class Rtree(RtreeApi):
         self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
         newRtree.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
 
-        self.nfh.saveTree(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
-        self.nfh.saveTree(newRtree)       # Guardo el nuevo nodo (u hoja) en disco
+        self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.save(newRtree)          # Guardo el nuevo nodo (u hoja) en disco
 
         treeMbrPointer = newRtree.getMbrPointer()
         return treeMbrPointer

@@ -66,7 +66,7 @@ class RtreeApi(object):
             self.loadRoot(initOffset)
 
     def loadRoot(self, initOffset):
-        self.currentNode = self.nfh.readTree(initOffset)
+        self.currentNode = self.read(initOffset)
         self.root = self.currentNode
 
     def resetRoot(self):
@@ -102,7 +102,7 @@ class RtreeApi(object):
                 i = 0
                 children = tree.getChildren()
                 for child in children:
-                    childTree = self.nfh.readTree(child.getPointer())
+                    childTree = self.read(child.getPointer())
                     s = toStr(childTree, s, l + 1, i)
                     i = i + 1
             else:
@@ -122,7 +122,7 @@ class RtreeApi(object):
 
         if currentNode.isANode():
             for child in currentNode.getChildren():
-                self.printRec(self.nfh.readTree(child.getPointer()))
+                self.printRec(self.read(child.getPointer()))
         else:
             i = 0
             for child in currentNode.getChildren():
@@ -226,6 +226,10 @@ class RtreeApi(object):
         else:
             self.nfh.saveTree(self.currentNode)
 
+    # Lee y entrega un nodo u hoja de disco
+    def read(self, treeOffset):
+        return self.nfh.readTree(treeOffset)
+
     # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
     def insertChild(self, newChild):
         self.currentNode.insert(newChild)
@@ -250,7 +254,7 @@ class RtreeApi(object):
             self.cache = self.cache + [self.currentNode]
         self.k = self.k + 1
 
-        self.currentNode = self.nfh.readTree(pointer)
+        self.currentNode = self.read(pointer)
         return
 
     # Escoger el padre del nodo actual
