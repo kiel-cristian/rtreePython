@@ -5,15 +5,20 @@ from SortingManager import *
 
 class PartitionError(Exception):
     def __init__(self, value="partition error"):
+        super(PartitionError, self).__init__()
         self.value = value
     def __str__(self):
         return repr(self.value)
 
-class PartitionAlgorithm():
+class PartitionAlgorithm(object):
+    def __init__(self):
+        self.partitions = []
+        self.seeds      = []
+        self.pElems     = 0
 
     # Realiza la partición efectivamente
     # Retorna una lista con [[a,b],[a,b]] donde a es el mbr resultante y b es la lista de los indices que la componen
-    def partition(self, mbrParent, mbrPointerList, m, leafMode = False):
+    def partition(self, mbrParent, mbrPointerList, m):
         seedsIndex = self.selectSeeds(mbrParent, mbrPointerList)
         restMbr = mbrPointerList[:]
         restMbr.remove(mbrPointerList[seedsIndex[0]])
@@ -172,6 +177,7 @@ class CuadraticPartition(PartitionAlgorithm):
 # Particion usada por el R+ tree
 class SweepPartition(PartitionAlgorithm):
     def __init__(self):
+        super(SweepPartition, self).__init__()
         self.sorter = SortingManager()
         self.cut = None
         self.dim = None
