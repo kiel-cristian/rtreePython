@@ -60,11 +60,11 @@ class RtreePlus(RtreeApi):
         t0 = time()
 
         self.insertR(mbrPointer)
-        self.goToRoot()
 
         t1 = time()
         self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
+        self.goToRoot()
 
     def markNodeAsVisited(self, next):
         self.visitedNodes[self.currentHeigth()][next.getPointer()] = True
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     print(gen.nextRadial(d, r))
     print("Search Results")
     randomMbr = gen.nextRadial(d, r)
-    results = rtree.search(randomMbr)
+    results = rtree.search(randomMbr, True)
     for m in results:
         print("d: " + str(randomMbr.distanceTo(m)))
         print("\t" + (str(m)))

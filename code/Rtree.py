@@ -97,7 +97,7 @@ if __name__ == "__main__":
     print(gen.nextRadial(d, r))
     print("Search Results")
     randomMbr = gen.nextRadial(d, r)
-    results = rtree.search(randomMbr)
+    results = rtree.search(randomMbr, True)
     for m in results:
         print("d: " + str(randomMbr.distanceTo(m)))
         print("\t" + (str(m)))

@@ -116,6 +116,7 @@ class RtreeApi(object):
 
     def printTree(self):
         self.printRec(self.currentNode)
+        self.goToRoot()
 
     def printRec(self, currentNode):
         print(str(currentNode))
@@ -186,27 +187,30 @@ class RtreeApi(object):
         return MNode(M = self.M(), d = self.d())
 
     # Busqueda radial de objeto
-    def search(self, radialMbr):
+    def search(self, radialMbr, verbose = False):
         t0 = time()
 
         results = []
-        results = self.searchR(radialMbr=radialMbr, results=results)
+        results = self.searchR(radialMbr=radialMbr, results=results, verbose = verbose)
 
         t1 = time()
         self.incrementMeanSearchTime(t1 - t0)
         return results
 
-    def searchR(self, radialMbr, results):
+    def searchR(self, radialMbr, results, verbose):
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
             selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
-                results = self.searchR(radialMbr, results)
+                results = self.searchR(radialMbr, results, verbose)
         else:
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
-                    results = results + [c]
+                    if verbose:
+                        results = results + [c]
+                    else:
+                        results = results + [c.getPointer()]
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
