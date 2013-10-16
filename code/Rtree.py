@@ -9,8 +9,13 @@ class Rtree(RtreeApi):
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 0):
-        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "rtree")
+        super(Rtree, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "rtree")
         self.sa = RtreeSelection()  # Algoritmo de seleccion de mejor nodo a insertar en base a crecimiento minimo de area
+        # Algoritmo de particionamiento
+        if partitionType == 0:
+            self.pa = LinealPartition()
+        elif partitionType == 1:
+            self.pa = CuadraticPartition()
 
     def insert(self, mbrPointer):
         t0 = time()
@@ -73,16 +78,7 @@ class Rtree(RtreeApi):
         self.propagateAdjust()
         self.goToRoot()
 
-    # Ajusta mbrs de todos los nodos hasta llegar a la raiz
-    def propagateAdjust(self):
-        while self.currentHeigth() > 0:
-            childMbrPointer = self.currentNode.getMbrPointer()
-
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
-
-if __name__=="__main__":
+if __name__ == "__main__":
     d = 2
     M = 100
     rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)

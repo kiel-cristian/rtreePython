@@ -10,7 +10,6 @@ class RtreePlusStatus(object):
 
     def handle(self):
         pass
-    pass
 
 class RtreePlusAdjustStatus(RtreePlusStatus):
     def __init__(self, tree):
@@ -21,10 +20,10 @@ class RtreePlusAdjustStatus(RtreePlusStatus):
 
 class RtreePlusSplitStatus(RtreePlusStatus):
     def __init__(self, tree, splitMbrPointer):
-        super(RtreePlusInsertStatus, self).__init__(tree, splitMbrPointer)
+        super(RtreePlusSplitStatus, self).__init__(tree, splitMbrPointer)
 
     def handle(self):
-        return self.tree.splitOneLevel(self.splitMbrPointer)
+        return self.tree.splitOneLevel(self.data)
 
 class RtreePlusBackToRecursionLevel(RtreePlusStatus):
     def __init__(self, tree):
@@ -39,13 +38,15 @@ class RtreePlus(RtreeApi):
     # maxE       : cantidad maxima de elementos que almacenara el RtreePlus
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
-    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0, partitionType = 2):
-        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, partitionType = partitionType, dataFile = "r+tree")
-        self.sa = RtreePlusSelection() # Algoritmo de seleccion de mejor nodo a insertar en base a interseccion de areas
+    def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0):
+        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "r+tree")
+        # Algoritmo de seleccion de mejor nodo a insertar
+        # en base a interseccion de areas
+        self.sa = RtreePlusSelection()
         self.visitedNodes = {}
         self.pendingSplits = {}
 
-        for h in self.H:
+        for h in range(self.H):
             # self.pendingSplits[h] = {}
             self.visitedNodes[h]  = {}
 
@@ -59,10 +60,10 @@ class RtreePlus(RtreeApi):
         self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
 
-    def markNodeAsVisited(self, node):
+    def markNodeAsVisited(self, next):
         self.visitedNodes[self.currentHeigth()][next.getPointer()] = True
 
-    def nodeIsVisited(self, node):
+    def nodeIsVisited(self, next):
         return self.visitedNodes[self.currentHeigth()][next.getPointer()] == True
 
     def goToLastLevel(self):
@@ -72,7 +73,7 @@ class RtreePlus(RtreeApi):
     def insertR(self, mbrPointer):
         # Bajo por todos los nodos adecuados
         if self.currentNode.isANode():
-            trees = self.chooseTree(self.currentNode, mbrPointer)
+            trees = self.chooseTree(mbrPointer)
 
             if len(trees) == 0:
                 self.insertOnNewNode(mbrPointer)
@@ -179,11 +180,12 @@ class RtreePlus(RtreeApi):
     # TODO
     def splitOnCut(self, cut, dim):
         partitionData = self.pa.partitionOnCut(self.currentNode.getMbr(), self.currentNode.getChildren())
+        pass
 
-if __name__=="__main__":
+if __name__ == "__main__":
     d = 2
     M = 100
-    rtree = RtreePlus(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    rtree = RtreePlus(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0)
 
     objects = [randomMbrPointer(d) for i in range(200)]
 

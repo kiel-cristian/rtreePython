@@ -2,23 +2,10 @@
 from Mbr import *
 from MbrPointer import *
 from RadialMbr import *
-from time import time
 
-class MRtreeLoadError(Exception):
-    def __init__(self):
-        self.value = "Largo del MBR debe coincidir con el de punteros"
-    def __str__(self):
-        return repr(self.value)
-
-class MRtreeAddChildError(Exception):
-    def __init__(self, value = "Tipos a insertar incorrectos"):
+class MRtreeError(Exception):
+    def __init__(self, value):
         self.value = value
-    def __str__(self):
-        return repr(self.value)
-
-class MRtreeUpdateChildError(Exception):
-    def __init__(self):
-        self.value = "Error actualizando hijo, no encontrado"
     def __str__(self):
         return repr(self.value)
 
@@ -30,7 +17,7 @@ class MRtree(object):
         self.offset = offset
         self.root = False
 
-        self.mbrs           = [m for m in mbrs if m != -2.0]
+        self.mbrs           = [mb for mb in mbrs if mb != -2.0]
         self.pointers       = [p for p in pointers if p != -1]
 
         self.elems          = len(self.pointers)
@@ -41,7 +28,7 @@ class MRtree(object):
         childMbrs     = [Mbr(d).setRange(g) for g in groupedList]
 
         if self.elems != len(groupedList):
-            raise MRtreeLoadError()
+            raise MRtreeError("Largo del MBR debe coincidir con el de punteros")
 
         # Se calcula el mbr del Nodo actual, en base a los mbrs de los hijos
         for m in childMbrs:
@@ -95,7 +82,7 @@ class MRtree(object):
                 break
 
         if not change:
-            raise MRtreeUpdateChildError()
+            raise MRtreeError("Error actualizando hijo, no encontrado")
         self.mbr.expand(mbrPointer.getMbr())
 
     def getPointer(self):
@@ -166,7 +153,7 @@ class MLeaf(MRtree):
     def isALeaf(self):
         return True
 
-if __name__=="__main__":
+if __name__ == "__main__":
     node = MNode(M = 20, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3,  pointers = [500, 100, 50])
     leaf = MLeaf(M = 8, d = 2, offset = 10, mbrs = [0.1, 0.1, 0.2, 0.2]*3, pointers = [100, 200, 300])
 
