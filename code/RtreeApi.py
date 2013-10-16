@@ -233,12 +233,20 @@ class RtreeApi(object):
     # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
     def insertChild(self, newChild):
         self.currentNode.insert(newChild)
+        self.updateCache()
         self.save()
 
     # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
     def updateChild(self, mbrPointer):
         self.currentNode.updateChild(mbrPointer)
+        self.updateCache()
         self.save()
+
+    # Actualiza en el cache el nodo que acaba de cambiar
+    def updateCache(self):
+        k = self.currentHeigth()
+        if len(self.cache) > k:
+            self.cache[k] = self.currentNode
 
     # Vuelve puntero del nodo padre al ultimo almacenado en cache
     def goToLastLevel(self):

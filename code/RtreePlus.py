@@ -46,40 +46,14 @@ class RtreePlus(RtreeApi):
         # en base a interseccion de areas
         self.sa = RtreePlusSelection()
         self.visitedNodes = {}
-        self.pendingSplits = {}
 
         for h in range(self.H):
-            # self.pendingSplits[h] = {}
             self.visitedNodes[h]  = {}
 
-        self.iCache = []
-        self.iK     = 0
-
-    def internalCurrentHeigth(self):
-        return self.iK
-
-    # Escojo el padre de un nodo, pero utilizando el sub cache de recursion interna
-    def internalChooseParent(self, destructive = True):
-        if self.iK > 0:
-            self.currentNode = self.iCache[self.iK - 1]
-            if destructive:
-                self.iCache = self.iCache[0:self.iK-1] # Por defecto el cache se destruye al subir al padre
-            self.iK = self.iK - 1
-        else:
-            raise RtreeError("Ya esta en la raiz")
-
-    # Alcanzo un nodo y agrego el padre al cache interno
-    def internalSeekNode(self, mbrPointer):
-        pointer = mbrPointer.getPointer()
-
-        if len(self.iCache) > self.iK:
-            self.iCache[self.iK - 1] = self.currentNode
-        else:
-            self.iCache = self.iCache + [self.currentNode]
-        self.iK = self.iK + 1
-
-        self.currentNode = self.read(pointer)
-        return
+    def goToRoot(self):
+        for h in range(self.H):
+            self.visitedNodes[h]  = {}
+        super(RtreePlus, self).goToRoot()
 
     def insert(self, mbrPointer):
         t0 = time()
@@ -147,21 +121,17 @@ class RtreePlus(RtreeApi):
             self.propagateAdjust()
 
     # Ajusta Mbr del nodo padre del nodo actual
-    def adjustOneLevel(self, internalMode = False):
-        if internalMode:
-            getHeigth   = self.internalCurrentHeigth
-            reachParent = self.internalChooseParent
-        else:
-            getHeigth   = self.currentHeigth
-            reachParent = self.chooseParent
-
-        if getHeigth() > 0:
+    def adjustOneLevel(self):
+        if self.currentHeigth() > 0:
             childMbrPointer = self.currentNode.getMbrPointer()
-            reachParent(destructive = False) # cambia currentNode y sube un nivel del arbol
+
+            self.chooseParent(destructive = False) # cambia currentNode y sube un nivel del arbol
+
             self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
-            return RtreePlusAdjustStatus(self, internalMode)
+
+            return RtreePlusAdjustStatus(self)
         else:
-            return RtreePlusBackToRecursionLevel(self, internalMode)
+            return RtreePlusBackToRecursionLevel(self)
 
     # Analogo a insert, inserta nodo de split en el padre
     def splitOneLevel(self, splitMbrPointer, internalMode = False):
