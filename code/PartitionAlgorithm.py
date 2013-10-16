@@ -215,6 +215,8 @@ class SweepPartition(PartitionAlgorithm):
         recursiveSplits = []
         firstPartition    = []
         secondPartition = []
+        rs = 0
+
         if leafMode:
             fPLen = 0
             sPLen = 0
@@ -237,16 +239,50 @@ class SweepPartition(PartitionAlgorithm):
                 # Si es que el corte atraviesa al mbr, es necesario subdividirlo recursivamente posteriormente
                 if mb.getMin(minCostDim) >= dimCut and dimCut <= mb.getMax(minCostDim):
                     recursiveSplits = recursiveSplits + [mb]
+                    rs = rs + 1
                 elif mb.getMin(minCostDim) < dimCut and i < m:
                     firstPartition = firstPartition + [mb]
                     i = i +1
                 else:
                     secondPartition = secondPartition + [mb]
 
-        self.cut = dimCut
-        self.dim = minCostDim
-        self.recursiveSplits = recursiveSplits
+        if rs > 0:
+            self.cut = dimCut
+            self.dim = minCostDim
+            self.recursiveSplits = recursiveSplits
+        else:
+            self.cut = None
+            self.dim = None
+            self.recursiveSplits = []
         return [[seedMbrs[0]] + firstPartition, [seedMbrs[1]] + secondPartition]
+
+    # Particiona una lista de mbrPointers segun un corte dimensional, y, almacena los nodos
+    # que deben ser particionados de forma recursiva antes de insertarlos
+    def partitionOnCut(self, mbrPointerList, cut, dim):
+        firstPartition  = []
+        secondPartition = []
+        recursiveSplits = []
+        rs = 0
+
+        for mb in mbrPointerList:
+            # Corte en nodo hijo
+            if mb.getMin(dim)<= cut and cut <= mb.getMax(dim):
+                recursiveSplits = recursiveSplits + [mb]
+                rs = rs + 1
+            elif mb.getMax(dim) <= cut:
+                firstPartition = firstPartition + [mb]
+            else:
+                secondPartition = secondPartition + [mb]
+
+        if rs > 0:
+            self.cut = cut
+            self.dim = dim
+            self.recursiveSplits = recursiveSplits
+        else:
+            self.cut = None
+            self.dim = None
+            self.recursiveSplits = []
+        return [firstPartition, secondPartition]
 
     def getCut(self):
         return self.cut
@@ -282,10 +318,10 @@ def newMbrPointer(point):
 
 if __name__ == "__main__":
     parent = Mbr(2)
-    parent.setPoint([0, 1])
-    mList    = [newMbrPointer([0, 0.6]), newMbrPointer([0.5, 0.6]), newMbrPointer([0.5, 1]), newMbrPointer([0.5, 0.3]), newMbrPointer([1, 0.6]), newMbrPointer([0.7, 0])]
+    parent.setPoint([0.0, 1.0])
+    mList    = [newMbrPointer([0.0, 0.6]), newMbrPointer([0.5, 0.6]), newMbrPointer([0.5, 1.0]), newMbrPointer([0.5, 0.3]), newMbrPointer([1.0, 0.6]), newMbrPointer([0.7, 0.0])]
     print([str(_) for _ in mList])
-    parent.setRange([0, 1, 0, 1])
+    parent.setRange([0.0, 1.0, 0.0, 1.0])
 
     print("Linear")
     testPartition(LinealPartition(), parent, mList)
@@ -296,6 +332,20 @@ if __name__ == "__main__":
     print([ str(_) for e in CuadraticPartition().partition(parent, mList, 2) for _ in e])
 
     print("Sweep")
-    print([ str(_) for e in SweepPartition().partition(parent, mList, 2) for _ in e])
-    print([ str(_) for _ in SweepPartition().partition(parent, mList, 2, True)[0]])
-    print([ str(_) for _ in SweepPartition().partition(parent, mList, 2, True)[1]])
+    sp = SweepPartition()
+    print([ str(_) for e in sp.partition(parent, mList, 2) for _ in e])
+    print([ str(_) for _ in sp.partition(parent, mList, 2, True)[0]])
+    print([ str(_) for _ in sp.partition(parent, mList, 2, True)[1]])
+    print("By Cut")
+    print("cut on 0.3")
+    cuts = sp.partitionOnCut(mList, 0.3, 0)
+    print([str(_) for _ in cuts[0]])
+    print([str(_) for _ in cuts[1]])
+    print("recursive splits")
+    print([str(_) for _ in sp.getRecursiveSplits()])
+    print("cut on 0.5")
+    cuts = sp.partitionOnCut(mList, 0.5, 0)
+    print([str(_) for _ in cuts[0]])
+    print([str(_) for _ in cuts[1]])
+    print("recursive splits")
+    print([str(_) for _ in sp.getRecursiveSplits()])

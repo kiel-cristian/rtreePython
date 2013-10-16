@@ -108,6 +108,7 @@ class RtreePlus(RtreeApi):
 
             if len(trees) == 0:
                 self.insertOnNewNode(mbrPointer)
+                return None
             else:
                 for next in trees:
                     if not self.nodeIsVisited(next):
@@ -258,9 +259,11 @@ class RtreePlus(RtreeApi):
 if __name__ == "__main__":
     d = 2
     M = 100
-    rtree = RtreePlus(d = d, M = 100, maxE = 10**6, reset = True, initOffset = 0)
+    rtree = RtreePlus(d = d, M = 10, maxE = 10**6, reset = True, initOffset = 0)
 
     objects = [randomMbrPointer(d) for i in range(200)]
 
     for o in objects:
         rtree.insert(o)
+
+    # print(rtree)

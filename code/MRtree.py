@@ -43,9 +43,24 @@ class MRtree(object):
     def __str__(self):
         return "[Tree]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
 
-    # Setea la info proveniendo de un split dentro del nodo u hoja
+    # Setea la info provenient de un split dentro del nodo u hoja
     def setData(self, thisNodeMbr, childrenMbrPointers):
         self.mbr = Mbr(self.d).setRange(thisNodeMbr.dump())
+        self.mbrPointers = childrenMbrPointers[:]
+
+        self.elems = 0
+        self.pointers  = []
+        self.mbrs      = []
+        self.childMbrs = []
+        self.mbrPointers = childrenMbrPointers[:]
+
+        for child in childrenMbrPointers:
+            self.elems    = self.elems + 1
+            self.mbrs     = self.mbrs + child.getMbr().dump()
+            self.pointers = self.pointers + [child.getPointer()]
+
+    # Setea la info proveniente de un split by cut
+    def setDataChildren(self, childrenMbrPointers):
         self.mbrPointers = childrenMbrPointers[:]
 
         self.elems = 0
