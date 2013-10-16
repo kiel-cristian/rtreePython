@@ -239,6 +239,10 @@ class RtreeApi(object):
         self.currentNode.updateChild(mbrPointer)
         self.save()
 
+    # Vuelve puntero del nodo padre al ultimo almacenado en cache
+    def goToLastLevel(self):
+        self.k = len(self.cache)
+
     # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, mbrPointer):
         pointer = mbrPointer.getPointer()
