@@ -18,28 +18,6 @@ class RtreePlus(RtreeApi):
             self.pendingSplits[h] = {}
             self.visitedNodes[h]  = {}
 
-    def chooseAnyTree(self):
-        mbrPointer = self.sa.selectAny(self.currentNode)
-        if mbrPointer == None:
-            newNode = self.newNode()
-            newLeaf = self.newLeaf()
-
-            self.allocateTree(newNode)
-            self.save(newLeaf)
-
-            leafMbrPointer = newLeaf.getMbrPointer()
-            newNode.insert(leafMbrPointer)
-            self.save(newNode)
-            return leafMbrPointer
-        else:
-            return mbrPointer
-
-    def setLastInsertHeight(self):
-        self.lastInsertH = self.k
-
-    def lastInsertHeight(self):
-        return self.lastInsertH
-
     def insert(self, mbrPointer):
         t0 = time()
 
@@ -47,15 +25,14 @@ class RtreePlus(RtreeApi):
         self.goToRoot()
 
         t1 = time()
-        if self.meanInsertionTime == None:
-          self.meanInsertionTime = t1-t0
-        else:
-          self.meanInsertionTime = (self.meanInsertionTime*self.insertionsCount + (t1-t0))/(self.insertionsCount+1)
-          self.insertionsCount = self.insertionsCount +1
+        self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
 
     def markNodeAsVisited(self, node):
         self.visitedNodes[self.currentHeigth()][next.getPointer()] = True
+
+    def nodeIsVisited(self, node):
+        return self.visitedNodes[self.currentHeigth()][next.getPointer()] == True
 
     def insertR(self, mbrPointer):
         # Bajo por todos los nodos adecuados
@@ -63,10 +40,10 @@ class RtreePlus(RtreeApi):
             trees = self.chooseTree(self.currentNode, mbrPointer)
 
             if len(trees) == 0:
-                self.insertBestNode(mbrPointer) #TODO
+                self.insertOnNewNode(mbrPointer)
             else:
                 for next in trees:
-                    self.visitedNodes[self.currentHeigth()][next.getPointer()] != True:
+                    if not self.nodeIsVisited(next):
                         self.seekNode(next)
                         self.markNodeAsVisited(next)
                         self.insertR(mbrPointer)
@@ -76,13 +53,26 @@ class RtreePlus(RtreeApi):
                 newLeaf = self.splitLeaf(self.currentNode.getChildren() + [mbrPointer])
                 self.propagateSplit(newLeaf)
             else:
-                self.update(mbrPointer)
+                self.insertChild(mbrPointer)
                 self.propagateAdjust()
 
-    # TODO
-    def insertBestNode(self, mbrPointer):
-        print("PENDING")
-        pass
+    def insertOnNewNode(self, mbrPointer):
+        # El mbr a insertar no intersecta con ningun nodo, por ende, se genera una nueva tupla de nodo, hoja
+        newNode = self.newNode()
+        newLeaf = self.newLeaf()
+
+        self.allocateTree(newNode)
+        self.save(newLeaf)
+
+        leafMbrPointer = newLeaf.getMbrPointer()
+        newNode.insert(leafMbrPointer)
+        self.save(newNode)
+
+        if self.needToSplit():
+            self.makeNewRoot(newNode.getMbrPointer())
+        else:
+            self.insertChild(mbrPointer)
+            self.propagateAdjust()
 
     # Ajusta Mbr del nodo padre del nodo actual
     def adjustOneLevel(self):
@@ -108,7 +98,7 @@ class RtreePlus(RtreeApi):
         if self.needToSplit():
             self.pendingSplits[self.currentHeigth()] = self.pendingSplits[self.currentHeigth()] + [lastSplit]
         else:
-            self.update(lastSplit)
+            self.insertChild(lastSplit)
     '''
     def doPendingSplits(self):
         pendingSplitsLen = len(self.pendingSplits[self.currentHeigth()])
