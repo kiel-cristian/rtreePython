@@ -6,8 +6,8 @@ Created on 09-10-2013
 import io
 import random
 import struct
-import Rtree
-import Mbr
+from Rtree import *
+from Mbr import *
 
 
 def generateObjects(name, numElems, dimension):
@@ -25,33 +25,23 @@ def generateData():
       num = num + 1
 
 if __name__ == '__main__':
-    # generateData()
-  f = open("Resultados.txt", 'w')
-  for M in [50,100]:
-    mTree = Rtree(2 ** 2,M)
-    f.write("d meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
-    # Construyo el Rtree con los elementos
-    for s in range (10 ** 5):
-      m = Mbr(2 ** 2)
-      m.setPoint([random.random() for _ in range(2 ** 2)])
-      mTree.insert(m)
-    f.write("%d %f %f %f %f\n" % (mTree.d, mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
-#   f = open("Resultados.txt", 'w+')
-#   for d in [2,4,8,16]:
-#     for M in [50,100]:
-#       mTree = Rtree(2 ** d,M)
-#       f.write("d meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
-#       # Construyo el Rtree con los elementos
-#       for s in range (10 ** 5):
-#         m = Mbr(2 ** d)
-#         m.setPoint([random.random() for _ in range(2 ** d)])
-#         mTree.insert(m)
-#       f.write("%d %f %f %f %f\n" % (mTree.d, mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
-#       f.write("d meanVisited meanQueryTime\n")
-#       # Construyo los elementos de consulta
-#       for radio in [0.25, 0.50, 0.75]:
-#         for n in range (1,6):
-#           for s in range (n * 10 ** 3):
-#             obj = [random.random() for _ in range(2 ** d)]
-#             mTree.search(radio * (d ** 0.5), obj)
-#           f.write("%d %f %f\n" % (mTree.d, mTree.computeMeanNodes(), mTree.meanSearchTime))
+    f = open("Resultados.txt", 'w+')
+    for partitionType in [0,1,2]:
+      for d in [2, 4, 8, 16]:
+          for M in [50, 100]:
+              mTree = Rtree(d=d, M=M, maxE=10 ** 6, reset=True, initOffset=0, partitionType=partitionType)
+              f.write("d=%d M=%d partitionType=%d\n" % (d, M, partitionType))
+              f.write("meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
+              # Construyo el Rtree con los elementos
+              for s in range (10 ** 5):
+                  mTree.insert(randomMbrPointer(d))
+              f.write("%f %f %f %f\n" % (mTree.getMeanNodePartitions(), mTree.meanInsertionTime, mTree.meanTotalNodes, mTree.meanInternalNodes))
+              f.write("meanVisited meanQueryTime\n")
+              # Construyo los elementos de consulta
+              for radio in [0.25, 0.50, 0.75]:
+                  for n in range (1, 6):
+                      for s in range (n * 10 ** 3):
+                          obj = [random.random() for _ in range(2 ** d)]
+                          mTree.search(radio * (d ** 0.5), obj)
+                      f.write("%f %f\n" % (mTree.computeMeanNodes(), mTree.meanSearchTime))
+    f.close()

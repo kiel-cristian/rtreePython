@@ -124,10 +124,6 @@ class RtreeApi(object):
                 print("i: " + str(i) + " " + (str(child)))
                 i =  i + 1
 
-    def getMeanNodePartitions(self):
-      ##TODO
-      pass
-
     # Fija punteros auxiliares de la estructura a la  raiz
     def goToRoot(self):
         self.cache = []
@@ -325,7 +321,7 @@ class RtreeApi(object):
       self.meanInternalNodes = (self.meanInternalNodes * (self.insertionsCount - 1) + self.internalNodeCount)/self.insertionsCount
 
     def getMeanNodePartitions(self):
-      return self.splitCount/self.nodeCount
+      return self.splitCount/(self.internalNodeCount + self.leafCount)
 
     def getMeanVisitedNodes(self):
       return self.visitedNodes/self.searchCount
