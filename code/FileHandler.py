@@ -117,9 +117,6 @@ class RtreeFileHandler(object):
             self.lastOffset = self.lastOffset + self.nodeBytes
             tree.offset = selectedOffset
             self.writeTree(tree)
-        elif tree.offset == 0: #raiz
-            self.lastOffset = self.lastOffset + self.nodeBytes
-            self.writeTree(tree)
         else:
             self.writeTree(tree)
 
@@ -164,6 +161,10 @@ class RtreeFileHandler(object):
             return MNode(M = self.M, d = self.d, offset = offset, mbrs = mbrs, pointers = pointers)
         elif check == self.leafId:
             return MLeaf(M = self.M, d = self.d, offset = offset, mbrs = mbrs, pointers = pointers)
+
+    def reAllocate(self, tree):
+        tree.offset = -1
+        self.saveTree(tree)
 
     def genData(self,dataFile,d,n):
         randVectors = [random.random() for _ in range(n)]

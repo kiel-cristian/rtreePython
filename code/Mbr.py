@@ -5,7 +5,7 @@ class Mbr(MbrApi):
         self.d = d
         self.coords = [maxV, minV] * self.d
         self.dRanges = self.listToRange(self.coords)
-        
+
     def __str__(self):
         return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
 
@@ -117,8 +117,8 @@ class Mbr(MbrApi):
             return [True, a]
         else:
             return [False, 0]
-          
-    # Retorna un MBR que incluya el actual y el mbr dado      
+
+    # Retorna un MBR que incluya el actual y el mbr dado
     def returnExpandedMBR(self, mbr):
       expandedMbr = Mbr(self.d)
       for i in range(self.d):
@@ -133,7 +133,7 @@ class Mbr(MbrApi):
         else:
           expandedMbr.setMax(i, dMax)
       return expandedMbr
-    
+
     # Expande el MBR actual para que incluya tambien el mbr dado
     def expand(self, mbr):
         for i in range(self.d):
@@ -142,10 +142,10 @@ class Mbr(MbrApi):
 
             if mbr.getMin(i) < dMin:
                 self.setMin(i, mbr.getMin(i))
-                
+
             elif mbr.getMax(i) > dMax:
                 self.setMax(i, mbr.getMax(i))
-                
+
     def areIntersecting(self,mbr):
       for d in range(self.d):
         mMin = self.getMin(d)
@@ -205,7 +205,7 @@ if __name__ == "__main__":
 
     m.setPoint([0.8, 1.4])
     print(m.distanceTo(m2))
-    
+
     print(m.returnExpandedMBR(m2).dRanges)
     print(m.returnExpandedMBR(m2).getArea())
     print(m.getArea() + m2.getArea())

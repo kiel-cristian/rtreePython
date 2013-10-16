@@ -111,7 +111,7 @@ class LinealPartition(PartitionAlgorithm):
     # m : minimo de nodos en cada particion
     random.shuffle(restMbr)
 
-    self.partitions = [[None, seeds[0]], [None, seeds[1]]]
+    self.partitions = [[seeds[0].getMbr(), seeds[0]], [seeds[1].getMbr(), seeds[1]]]
     self.seeds = seeds
     self.pElems = [1,1]
 
@@ -148,7 +148,7 @@ class CuadraticPartition(PartitionAlgorithm):
     return seedsIndex
 
   def partitionFromSeeds(self, seeds, restMbr, m):
-    self.partitions = [[None, seeds[0]], [None, seeds[1]]]
+    self.partitions = [[seeds[0].getMbr(), seeds[0]], [seeds[1].getMbr(), seeds[1]]]
     self.seeds = seeds
     self.pElems = [1,1]
 
@@ -172,6 +172,9 @@ class CuadraticPartition(PartitionAlgorithm):
 class SweepPartition(PartitionAlgorithm):
   def __init__(self):
     self.sorter = SortingManager()
+    self.cut = None
+    self.dim = None
+    self.recursiveSplits = None
 
   def mbrCompare(self, d):
     def compare(first, second):
@@ -202,19 +205,19 @@ class SweepPartition(PartitionAlgorithm):
     dimCut = (sortedList[m-1].getMin(minCostDim) + sortedList[m].getMin(minCostDim))/2 #corte dimensional
     seedMbrs = mbrParent.cutOnDimension(minCostDim, dimCut) # mbr de las dos nuevas particiones
 
+    recursiveSplits = []
+    firstPartition  = []
+    secondPartition = []
     if leafMode:
-      firstPartition  = []
-      secondPartition = []
-
       fPLen = 0
       sPLen = 0
 
-      for m in sortedList:
-        if seedMbrs[0].areIntersecting(m):
-          firstPartition = firstPartition + [m]
+      for mb in sortedList:
+        if seedMbrs[0].areIntersecting(mb):
+          firstPartition = firstPartition + [mb]
           fPLen = fPLen + 1
-        if seedMbrs[1].areIntersecting(m):
-          secondPartition = secondPartition + [m]
+        if seedMbrs[1].areIntersecting(mb):
+          secondPartition = secondPartition + [mb]
           sPLen = sPLen + 1
 
       maxL = len(mbrPointerList)
@@ -222,10 +225,30 @@ class SweepPartition(PartitionAlgorithm):
       if fPLen == maxL or sPLen == maxL:
         raise PartitionError("Particion Sweep no separo de forma adecuada los elementos en las hojas")
     else:
-      firstPartition  = sortedList[0:m]
-      secondPartition = sortedList[m:]
+      i = 0
+      for mb in sortedList:
+        # Si es que el corte atraviesa al mbr, es necesario subdividirlo recursivamente posteriormente
+        if mb.getMin(minCostDim) >= dimCut and dimCut <= mb.getMax(minCostDim):
+          recursiveSplits = recursiveSplits + [mb]
+        elif mb.getMin(minCostDim) < dimCut and i < m:
+          firstPartition = firstPartition + [mb]
+          i = i +1
+        else:
+          secondPartition = secondPartition + [mb]
 
+    self.cut = dimCut
+    self.dim = minCostDim
+    self.recursiveSplits = recursiveSplits
     return [[seedMbrs[0]] + firstPartition, [seedMbrs[1]] + secondPartition]
+
+    def getCut(self):
+      return self.cut
+    def getDim(self):
+      return self.dim
+    def getRecursiveSplits(self):
+      return self.recursiveSplits
+    def needsToSplitChilds(self):
+      return self.cut != None
 
 def testPartition(partition, parent, mList):
   seedsIndex = partition.selectSeeds(parent, mList)
