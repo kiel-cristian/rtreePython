@@ -1,0 +1,2 @@
+2013-10-16 19:27d=2 M=50 partitionType=0
+meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes
