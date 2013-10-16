@@ -242,17 +242,22 @@ class RtreeApi(object):
     # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, mbrPointer):
         pointer = mbrPointer.getPointer()
-        self.cache = self.cache + [self.currentNode]
+
+        if len(cache) > self.k:
+            self.cache[self.k - 1] = self.currentNode
+        else:
+            self.cache = self.cache + [self.currentNode]
         self.k = self.k + 1
 
         self.currentNode = self.nfh.readTree(pointer)
         return
 
     # Escoger el padre del nodo actual
-    def chooseParent(self):
+    def chooseParent(self, destructive = True):
         if self.k > 0:
             self.currentNode = self.cache[self.k - 1]
-            self.cache = self.cache[0:self.k-1]
+            if destructive:
+                self.cache = self.cache[0:self.k-1] # Por defecto el cache se destruye al subir al padre
             self.k = self.k - 1
         else:
             raise RtreeError("Ya esta en la raiz")
