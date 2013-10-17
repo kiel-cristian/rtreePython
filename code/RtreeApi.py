@@ -59,6 +59,7 @@ class RtreeApi(object):
 
         self.currentNode = None
         self.root        = None
+        self.treeType    = dataFile
 
         # Inicializacion de la raiz
         if reset:

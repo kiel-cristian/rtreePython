@@ -17,7 +17,6 @@ class Rtree(RtreeApi):
             self.pa = LinealPartition()
         elif partitionType == 1:
             self.pa = CuadraticPartition()
-        self.treeType = "rtree"
 
     def insert(self, mbrPointer):
         t0 = time()
@@ -96,6 +95,6 @@ if __name__ == "__main__":
     print(rtree)
 
     print(gen.nextRadial(d, r))
-    print("Search Results")
     randomMbr = gen.nextRadial(d, r*(d**0.5))
+    print("Generando busqueda")
     rtree.search(randomMbr, True)

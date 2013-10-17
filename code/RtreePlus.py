@@ -51,7 +51,6 @@ class RtreePlus(RtreeApi):
 
         for h in range(self.H):
             self.reachedNodes[h]  = {}
-        self.treeType = "r+tree"
 
     def goToRoot(self):
         for h in range(self.H):
@@ -254,6 +253,6 @@ if __name__ == "__main__":
     print(rtree)
 
     print(gen.nextRadial(d, r))
-    print("Search Results")
     randomMbr = gen.nextRadial(d, r*(d**0.5))
+    print("Generando busqueda")
     rtree.search(randomMbr, True)
