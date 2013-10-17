@@ -58,8 +58,9 @@ class RtreeApi(object):
         self.meanInternalNodes = 0
 
         self.currentNode = None
-        self.root = None
-        self.treeType = dataFile
+
+        self.root        = None
+        self.treeType    = dataFile
 
         # Inicializacion de la raiz
         if reset:
@@ -105,7 +106,7 @@ class RtreeApi(object):
                 i = 0
                 children = tree.getChildren()
                 if len(children) != 0:
-                    s = s + "\n" 
+                    s = s + "\n"
                 for child in children:
                     childTree = self.read(child.getPointer())
                     s = toStr(childTree, s, l + 1, i)
@@ -114,7 +115,7 @@ class RtreeApi(object):
                 i = 0
                 children = tree.getChildren()
                 if len(children) != 0:
-                    s = s + "\n" 
+                    s = s + "\n"
                 for child in children:
                     s = s + " "*(4 * l + 1) + "Leaf: l=" + str(l) + " i=" + str(i) + " -> " + str(child) + "\n"
                     i = i + 1
@@ -205,7 +206,7 @@ class RtreeApi(object):
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
 
-    def searchR(self, radialMbr, file, verbose, genFile):
+    def searchR(self, radialMbr, file, genFile, verbose):
         results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
