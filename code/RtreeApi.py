@@ -120,10 +120,10 @@ class RtreeApi(object):
                     s = s + " "*(4 * l + 1) + "Leaf: l=" + str(l) + " i=" + str(i) + " -> " + str(child) + "\n"
                     i = i + 1
             return s
-        return toStr(self.currentNode)
+        return toStr(self.root)
 
     def printTree(self):
-        self.printRec(self.currentNode)
+        self.printRec(self.root)
         self.goToRoot()
 
     def printRec(self, currentNode):
@@ -165,90 +165,9 @@ class RtreeApi(object):
         newRoot.insert(childMbrPointer)
         self.save(newRoot)
 
-        self.root = newRoot
-        self.cache = [newRoot]
-        self.k = 1
+        self.root  = newRoot
 
-    # Capacidad minima de nodos y hojas
-    def m(self):
-        return self.nfh.m
-
-    # Capacidad maxima de nodos y hojas
-    def M(self):
-        return self.nfh.M
-
-    def d(self):
-        return self.nfh.d
-
-    def needToSplit(self):
-        res = self.currentNode.needToSplit()
-        if res:
-            self.incrementSplitCount()
-        return res
-
-    def newLeaf(self):
-        self.incrementLeafCount()
-        return MLeaf(M=self.M(), d=self.d())
-
-    def newNode(self):
-        self.incrementInternalNodeCount()
-        return MNode(M=self.M(), d=self.d())
-
-    # Busqueda radial de objeto
-    def search(self, radialMbr, fileResults, verbose=False, genFile=False):
-        if genFile:
-            fileResults.write("%s %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),str(radialMbr)))
-        t0 = time()        
-        self.searchR(radialMbr, fileResults, verbose, genFile)
-        t1 = time()
-        if genFile:
-            fileResults.write("\n\n")
-        self.incrementMeanSearchTime(t1 - t0)
-        self.goToRoot()
-
-    def searchR(self, radialMbr, file, verbose, genFile):
-        results = []
-        if self.currentNode.isANode():
-            self.incrementVisitedNodes()
-            selections = self.chooseTreeForSearch(radialMbr)
-            for s in  selections:
-                self.seekNode(s)
-                self.searchR(radialMbr, file, verbose, genFile)
-        else:
-            for c in self.currentNode.getChildren():
-                if radialMbr.areIntersecting(c):
-                    if verbose:
-                        results = results + [c]
-                    else:
-                        results = results + [c.getPointer()]
-
-            if self.currentHeigth() > 0:
-                self.chooseParent()
-                
-        if genFile:
-            for r in results:
-                file.write(str(r) + " ")
-        if verbose:
-            for r in results:
-                print(str(r))
-
-    # Insercion de un mbrPointer
-    def insert(self, mbrPointer):
-        pass
-
-    def currentHeigth(self):
-        return self.k
-
-    # Guarda el nodo actual en disco
-    def save(self, tree=None):
-        if tree != None:
-            self.nfh.saveTree(tree)
-        else:
-            self.nfh.saveTree(self.currentNode)
-
-    # Lee y entrega un nodo u hoja de disco
-    def read(self, treeOffset):
-        return self.nfh.readTree(treeOffset)
+        self.expandCache(newRoot)
 
     # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
     def insertChild(self, newChild):
@@ -267,6 +186,11 @@ class RtreeApi(object):
         k = self.currentHeigth()
         if len(self.cache) > k:
             self.cache[k] = self.currentNode
+
+    def expandCache(self, newRoot):
+        self.cache = [newRoot] + self.cache
+        self.k = self.k + 1
+        updateCache()
 
     # Vuelve puntero del nodo padre al ultimo almacenado en cache
     def goToLastLevel(self):
@@ -304,6 +228,87 @@ class RtreeApi(object):
     def chooseTreeForSearch(self, mbrO):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.radialSelect(mbrO, childrenMbrs)
+
+    # Capacidad minima de nodos y hojas
+    def m(self):
+        return self.nfh.m
+
+    # Capacidad maxima de nodos y hojas
+    def M(self):
+        return self.nfh.M
+
+    def d(self):
+        return self.nfh.d
+
+    def needToSplit(self):
+        res = self.currentNode.needToSplit()
+        if res:
+            self.incrementSplitCount()
+        return res
+
+    def newLeaf(self):
+        self.incrementLeafCount()
+        return MLeaf(M=self.M(), d=self.d())
+
+    def newNode(self):
+        self.incrementInternalNodeCount()
+        return MNode(M=self.M(), d=self.d())
+
+    # Busqueda radial de objeto
+    def search(self, radialMbr, fileResults, verbose=False, genFile=False):
+        if genFile:
+            fileResults.write("%s %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),str(radialMbr)))
+        t0 = time()
+        self.searchR(radialMbr, fileResults, verbose, genFile)
+        t1 = time()
+        if genFile:
+            fileResults.write("\n\n")
+        self.incrementMeanSearchTime(t1 - t0)
+        self.goToRoot()
+
+    def searchR(self, radialMbr, file, verbose, genFile):
+        results = []
+        if self.currentNode.isANode():
+            self.incrementVisitedNodes()
+            selections = self.chooseTreeForSearch(radialMbr)
+            for s in  selections:
+                self.seekNode(s)
+                self.searchR(radialMbr, file, verbose, genFile)
+        else:
+            for c in self.currentNode.getChildren():
+                if radialMbr.areIntersecting(c):
+                    if verbose:
+                        results = results + [c]
+                    else:
+                        results = results + [c.getPointer()]
+
+            if self.currentHeigth() > 0:
+                self.chooseParent()
+
+        if genFile:
+            for r in results:
+                file.write(str(r) + " ")
+        if verbose:
+            for r in results:
+                print(str(r))
+
+    # Insercion de un mbrPointer
+    def insert(self, mbrPointer):
+        pass
+
+    def currentHeigth(self):
+        return self.k
+
+    # Guarda el nodo actual en disco
+    def save(self, tree=None):
+        if tree != None:
+            self.nfh.saveTree(tree)
+        else:
+            self.nfh.saveTree(self.currentNode)
+
+    # Lee y entrega un nodo u hoja de disco
+    def read(self, treeOffset):
+        return self.nfh.readTree(treeOffset)
 
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
     def propagateAdjust(self):
