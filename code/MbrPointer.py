@@ -8,7 +8,7 @@ class MbrPointer(MbrApi):
         self.mbr         = mbr
         self.pointer = pointer
     def __str__(self):
-        return "[MbrPointer]{ mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
+        return "MbrPointer:" + str(self.mbr) + ", " + str(self.pointer)
     def getMin(self,d):
         return self.mbr.getMin(d)
     def getMax(self,d):

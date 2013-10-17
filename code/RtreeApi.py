@@ -5,6 +5,7 @@ from time import time
 from FileHandler import *
 from MRtree import *
 from PartitionAlgorithm import *
+import datetime
 
 #  ERRORS
 class RtreeError(Exception):
@@ -96,11 +97,13 @@ class RtreeApi(object):
     # Advertencia : USAR SOLO CON ARBOLES PEQUEÑOS!
     def __str__(self):
         def toStr(tree, s = "", l = 0, i = 0):
-            s = s + "{ l:" + str(l) + ", i :" + str(i) + "} ->" + str(tree) + "\n"
+            s = s + " "*(l*4) + "Node: l=" + str(l) + " i=" + str(i) + " ->\n" + " "*(l*4) + tree.toStr()
 
             if tree.isANode():
                 i = 0
                 children = tree.getChildren()
+                if len(children) != 0:
+                    s = s + "\n" 
                 for child in children:
                     childTree = self.read(child.getPointer())
                     s = toStr(childTree, s, l + 1, i)
@@ -108,8 +111,10 @@ class RtreeApi(object):
             else:
                 i = 0
                 children = tree.getChildren()
+                if len(children) != 0:
+                    s = s + "\n" 
                 for child in children:
-                    s = s + "{ child, l:" + str(l) + ", i :" + str(i) + "} ->" + str(child) + "\n"
+                    s = s + " "*(4*l+1) + "Leaf: l=" + str(l) + " i=" + str(i) + " -> " + str(child) + "\n"
                     i = i + 1
             return s
         return toStr(self.currentNode)
@@ -187,22 +192,23 @@ class RtreeApi(object):
 
     # Busqueda radial de objeto
     def search(self, radialMbr):
-        t0 = time()
-
-        results = []
-        results = self.searchR(radialMbr=radialMbr, results=results)
-
+        f = open("Busqueda %s.txt"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"), 'w+')
+        f.write(str(radialMbr) + "\n\n")
+        t0 = time()        
+        self.searchR(radialMbr, f)
         t1 = time()
+        f.close()
         self.incrementMeanSearchTime(t1 - t0)
-        return results
+        self.goToRoot()
 
-    def searchR(self, radialMbr, results):
+    def searchR(self, radialMbr, file):
+        results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
             selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
-                results = self.searchR(radialMbr, results)
+                self.searchR(radialMbr, file)
         else:
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
@@ -210,7 +216,8 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-        return results
+        for r in results:
+            file.write(str(r)+"\n")
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):

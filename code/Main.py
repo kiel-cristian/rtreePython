@@ -26,14 +26,13 @@ def generateData():
       num = num + 1
 
 if __name__ == '__main__':
-    now = datetime.datetime.now()
     mTree = Rtree(d=2, M=100, maxE=10 ** 6, reset=True, initOffset=0, partitionType=0)
     for s in range (100):
         mTree.insert(randomMbrPointer(2))
         for s in range (10):
             mTree.search(randomRadialMbr(2,0.25 * (2 ** 0.5)))
     f = open("Resultados.txt", 'w+')
-    f.write(now.strftime("%Y-%m-%d %H:%M")+ "\n")
+    f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")+ "\n")
     for partitionType in [0,1,2]:
       for d in [2, 4, 8, 16]:
           for M in [50, 100]:

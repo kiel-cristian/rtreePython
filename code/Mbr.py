@@ -9,7 +9,7 @@ class Mbr(MbrApi):
         self.dRanges = self.listToRange(self.coords)
 
     def __str__(self):
-        return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
+        return "Mbr:" + str(self.dRanges)
 
     def cutOnDimension(self, dToCut, cut):
         dumpCopy = self.dump()[:]

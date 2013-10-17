@@ -83,7 +83,7 @@ if __name__ == "__main__":
     M = 100
     rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
 
-    objects = [randomMbrPointer(d) for i in range(100)]
+    objects = [randomMbrPointer(d) for i in range(25)]
     print("Data generada")
 
     for o in objects:
@@ -92,10 +92,7 @@ if __name__ == "__main__":
     print(rtree)
 
     r = 0.25
-    print(randomRadialMbr(d,r))
     print("Search Results")
-    randomMbr = randomRadialMbr(d,r)
-    results = rtree.search(randomMbr)
-    for m in results:
-        print("d: " + str(randomMbr.distanceTo(m)))
-        print("\t" + (str(m)))
+    for i in range(10):
+        randomMbr = randomRadialMbr(d,r*(d**0.5))
+        rtree.search(randomMbr)

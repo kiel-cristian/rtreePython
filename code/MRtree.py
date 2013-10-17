@@ -41,7 +41,10 @@ class MRtree(object):
         self.mbrPointers = [MbrPointer(childMbrs[i], self.pointers[i]) for i in range(self.elems)]
 
     def __str__(self):
-        return "[Tree]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
+        return "Tree: p=" + str(self.offset) + " " + str(self.mbr) + "\nchilds=" + str([str(_) for _ in self.mbrPointers])
+    
+    def toStr(self):
+        return "p=" + str(self.offset) + " " + str(self.mbr) + " N° childs=" + str(len(self.mbrPointers))
 
     # Setea la info provenient de un split dentro del nodo u hoja
     def setData(self, thisNodeMbr, childrenMbrPointers):
@@ -147,7 +150,10 @@ class MNode(MRtree):
         super(MNode,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
     def __str__(self):
-        return "[Node]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
+        return "Node: p=" + str(self.offset) + " " + str(self.mbr) + "\nchilds=" + str([str(_) for _ in self.mbrPointers])
+
+    def toStr(self):
+        return "p=" + str(self.offset) + " " + str(self.mbr) + " N° childs=" + str(len(self.mbrPointers))
 
     def isANode(self):
         return True
@@ -160,8 +166,11 @@ class MLeaf(MRtree):
         super(MLeaf,  self).__init__(d = d, M = M, offset = offset, mbrs = mbrs, pointers = pointers)
 
     def __str__(self):
-        return "[Leaf]{ p:" + str(self.offset) + ", mbr: " + str(self.mbr) + ", childs: " + str([str(_) for _ in self.mbrPointers]) + "}"
+        return "Leaf: p=" + str(self.offset) + " " + str(self.mbr) + "\nchilds=" + str([str(_) for _ in self.mbrPointers])
 
+    def toStr(self):
+        return "p=" + str(self.offset) + " " + str(self.mbr) + " N° childs=" + str(len(self.mbrPointers))
+    
     def isANode(self):
         return False
 
