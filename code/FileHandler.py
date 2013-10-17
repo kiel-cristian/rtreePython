@@ -57,7 +57,12 @@ class RtreeFileHandler(object):
         self.lastOffset = initOffset  # ultimo offset del archivo donde es posible escribir mas nodos, o desde donde se comienza a leer
 
         # Creating Rtree file
-        f = io.open(self.dataFile,'w+b')
+        try:
+            # Existe, no hago nada
+            f = io.open(self.dataFile,'r+b')
+        except:
+            # No existe y lo creo
+            f = io.open(self.dataFile,'w+b')
         f.close()
 
     def __str__(self):
