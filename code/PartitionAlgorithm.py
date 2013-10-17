@@ -233,6 +233,13 @@ class SweepPartition(PartitionAlgorithm):
 
             if fPLen == maxL or sPLen == maxL:
                 raise PartitionError("Particion Sweep no separo de forma adecuada los elementos en las hojas")
+            elif fPLen + sPLen < maxL:
+                print("seeds:")
+                print(seedMbrs[0])
+                print(seedMbrs[1])
+                for s in sortedList:
+                    print(s)
+                raise PartitionError("Particion perdio elementos")
         else:
             i = 0
             for mb in sortedList:

@@ -190,11 +190,15 @@ class RtreeApi(object):
     def expandCache(self, newRoot):
         self.cache = [newRoot] + self.cache
         self.k = self.k + 1
-        updateCache()
+        self.updateCache()
 
     # Vuelve puntero del nodo padre al ultimo almacenado en cache
     def goToLastLevel(self):
         self.k = len(self.cache)
+        self.currentNode = self.cache[-1]
+
+    def currentHeigth(self):
+        return self.k
 
     # Baja un nivel en el arbol y prepara cache y nodo actual
     def seekNode(self, mbrPointer):
@@ -295,9 +299,6 @@ class RtreeApi(object):
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):
         pass
-
-    def currentHeigth(self):
-        return self.k
 
     # Guarda el nodo actual en disco
     def save(self, tree=None):
