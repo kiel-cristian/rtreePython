@@ -147,7 +147,7 @@ class RtreePlus(RtreeApi):
             return RtreePlusBackToRecursionLevel(self)
 
     # Analogo a insert, inserta nodo de split en el padre
-    def splitOneLevel(self, splitMbrPointer, internalMode = False):
+    def splitOneLevel(self, splitMbrPointer):
         lastSplit = splitMbrPointer
         lastNode  = self.currentNode.getMbrPointer()
 
@@ -175,16 +175,18 @@ class RtreePlus(RtreeApi):
         newNode = self.newNode()
         newNode.setData(partitionData[1][0], partitionData[1][1:])         # Guardo en un nuevo nodo (u hoja) la segunda particion
 
-        self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
+        self.save(self.currentNode)  # Guardo el nodo (u hoja) antiguo en disco
         self.save(newNode)           # Guardo el nuevo nodo (u hoja) en disco
 
         if self.pa.needsToSplitChilds():
             for child in self.pa.getRecursiveSplits():
                 self.seekNode(child)
                 self.markNodeAsVisited(child)
+
                 lastStatus = self.propagateSplitDownwards(self.pa.getCut(), self.pa.getDim())
                 while lastStatus != None:
                     lastStatus = lastStatus.handle() # manejo splits o ajustes hasta donde corresponda
+
                 self.chooseParent() # destructiveMode = True
         return newNode.getMbrPointer() # retorno el mbr que debo insertar en el padre
 
@@ -218,18 +220,42 @@ class RtreePlus(RtreeApi):
     def propagateSplitDownwards(self, cut, dim):
         if self.currentNode.isALeaf():
             # No hay nada mas que hacer
+
+
             return RtreePlusStatus(self)
         else:
-            newBrother = self.splitNodeByCut(cut, dim)
-            # Se efectuan splits de nodos de forma recursiva a los hijos y se manejan ajustes
+
             if self.pa.needsToSplitChilds():
                 for nextChild in self.pa.getRecursiveSplits():
                     self.seekNode(nextChild)
                     self.markNodeAsVisited(nextChild)
+
+                    newBrother = self.splitNodeByCut(cut, dim)
+
+                    brotherStatus = RtreePlusSplitStatus(newBrother)
+                    while brotherStatus != None:
+                        brotherStatus = brotherStatus.handle() # propago split del nuevo nodo hermano hasta que logre insertar
+
+                    currentNodeStatus = RtreePlusAdjustStatus()
+                    while currentNodeStatus != None:
+                        currentNodeStatus = currentNodeStatus.handle() # propago ajuste de nodo actual hasta la raiz actual
+
+
+                    if self.pa.needsToSplitChilds():
+                        
+
+                    self.chooseParent() # destructive = True
+                return RtreePlusBackToRecursionLevel(self)
+
                     nextStatus = self.propagateSplitDownwards(cut, dim)
                     while nextStatus != None:
                         nextStatus = nextStatus.handle()
-                    self.chooseParent() # destructive = True
+            
+
+
+
+                newBrother = self.splitNodeByCut(cut, dim)
+            # Se efectuan splits de nodos de forma recursiva a los hijos y se manejan ajustes
 
             # Y ahora se prepara insercion del nuevo hermano en el nodo padre actual
             self.chooseParent()
