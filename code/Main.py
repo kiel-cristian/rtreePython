@@ -49,5 +49,5 @@ if __name__ == '__main__':
                   for n in range (1, 6):
                       for s in range (n * 10 ** 3):
                           mTree.search(randomRadialMbr(d,radio * (d ** 0.5)))
-                      f.write("%f %f\n" % (mTree.computeMeanNodes(), mTree.meanSearchTime))
+                      f.write("%f %f\n" % (mTree.getMeanVisitedNodes(), mTree.meanSearchTime))
     f.close()

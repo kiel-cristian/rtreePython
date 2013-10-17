@@ -306,26 +306,26 @@ class RtreeApi(object):
             self.meanSearchTime = delta
         else:
             self.meanSearchTime = (self.meanSearchTime * self.searchCount + delta) / (self.searchCount + 1)
-        self.searchCount = self.searchCount + 1
+        self.searchCount += 1
 
     def incrementMeanInsertionTime(self, delta):
         if self.meanInsertionTime == None:
             self.meanInsertionTime = delta
         else:
             self.meanInsertionTime = (self.meanInsertionTime * self.insertionsCount + delta) / (self.insertionsCount + 1)
-        self.insertionsCount = self.insertionsCount + 1
+        self.insertionsCount += 1
 
     def incrementVisitedNodes(self):
-        self.visitedNodes = self.visitedNodes + 1
+        self.visitedNodes += 1
 
     def incrementSplitCount(self):
-        self.splitCount = self.splitCount + 1
+        self.splitCount += 1
 
     def incrementLeafCount(self):
-        self.leafCount = self.leafCount + 1
+        self.leafCount += 1
 
     def incrementInternalNodeCount(self):
-        self.internalNodeCount = self.internalNodeCount + 1
+        self.internalNodeCount += 1
 
     def computeMeanNodes(self):
         self.meanTotalNodes = (self.meanTotalNodes * (self.insertionsCount - 1) + (self.internalNodeCount + self.leafCount))/self.insertionsCount
