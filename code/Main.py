@@ -7,7 +7,7 @@ import io
 import random
 import struct
 from Rtree import *
-from MbPointer import *
+from MbrPointer import *
 import datetime
 from RadialMbr import *
 
