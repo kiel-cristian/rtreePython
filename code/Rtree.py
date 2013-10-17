@@ -81,11 +81,13 @@ class Rtree(RtreeApi):
 
 if __name__ == "__main__":
     d = 2
-    M = 100
-    rtree = Rtree(d = d, M = 3, maxE = 10**6, reset = True, initOffset = 0, partitionType = 0)
+    M = 25
+    E = 10**3
+    r = 0.25
 
+    rtree = Rtree(d = d, M = M, maxE = E, reset = True, initOffset = 0, partitionType = 0)
     gen = MbrGenerator()
-    objects = [gen.next(d) for i in range(100)]
+    objects = [gen.next(d) for i in range(E)]
     print("Data generada")
 
     for o in objects:
@@ -93,7 +95,6 @@ if __name__ == "__main__":
 
     print(rtree)
 
-    r = 0.25
     print(gen.nextRadial(d, r))
     print("Search Results")
     randomMbr = gen.nextRadial(d, r)
