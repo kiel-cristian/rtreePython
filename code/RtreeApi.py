@@ -194,29 +194,30 @@ class RtreeApi(object):
         return MNode(M = self.M(), d = self.d())
 
     # Busqueda radial de objeto
-    def search(self, radialMbr, verbose = False):
+    def search(self, radialMbr, verbose = False, genFile = False):
         t = self.treeType
-        if verbose:
+        if genFile:
             fileName = "../searchs/" + str(t) + " E:" + str(self.E) + " M:" + str(self.M()) + " d:" + str(self.d()) + " busqueda %s.bin"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             f = open(fileName, 'w+')
             f.write(str(radialMbr) + "\n\n")
+        else:
+            f = None
         t0 = time()
-        results = self.searchR(radialMbr, f, verbose)
+        self.searchR(radialMbr, f, verbose, genFile)
         t1 = time()
-        if verbose:
+        if genFile:
             f.close()
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
-        return results
 
-    def searchR(self, radialMbr, file, verbose):
+    def searchR(self, radialMbr, file, verbose, genFile):
         results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
             selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
-                self.searchR(radialMbr, file, verbose)
+                self.searchR(radialMbr, file, verbose, genFile)
         else:
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
@@ -227,12 +228,12 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-        if verbose:
+        if genFile:
             for r in results:
                 file.write(str(r)+" ")
-            return results
-        else:
-            return None
+        if verbose:
+            for r in results:
+                print(r)
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):

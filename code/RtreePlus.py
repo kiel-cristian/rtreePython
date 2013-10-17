@@ -68,7 +68,11 @@ class RtreePlus(RtreeApi):
         self.goToRoot()
 
     def markNodeAsVisited(self, next):
-        self.reachedNodes[self.currentHeigth()][next.getPointer()] = True
+        try:
+            self.reachedNodes[self.currentHeigth()][next.getPointer()] = True
+        except:
+            self.reachedNodes[self.currentHeigth()] = {}
+            self.reachedNodes[self.currentHeigth()][next.getPointer()] = True
 
     def nodeIsVisited(self, next):
         try:
@@ -238,8 +242,8 @@ class RtreePlus(RtreeApi):
 
 if __name__ == "__main__":
     d = 2
-    M = 25
-    E = 10**2
+    M = 4
+    E = 20
     r = 0.25
 
     rtree = RtreePlus(d = d, M = M, maxE = E, reset = True, initOffset = 0)
@@ -255,4 +259,4 @@ if __name__ == "__main__":
     print(gen.nextRadial(d, r))
     randomMbr = gen.nextRadial(d, r*(d**0.5))
     print("Generando busqueda")
-    rtree.search(randomMbr, True)
+    rtree.search(radialMbr = randomMbr, verbose = True, genFile = False)
