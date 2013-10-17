@@ -95,6 +95,6 @@ if __name__ == "__main__":
     print(rtree)
 
     print(gen.nextRadial(d, r))
-    print("Search Results")
     randomMbr = gen.nextRadial(d, r*(d**0.5))
-    rtree.search(randomMbr, True)
+    print("Generando busqueda")
+    rtree.search(radialMbr = randomMbr, verbose = True, genFile = False)
