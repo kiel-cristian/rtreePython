@@ -223,7 +223,7 @@ class RtreeApi(object):
         else:
             raise RtreeError("Ya esta en la raiz")
 
-    # Escoge los nodos que intersectan con el mbr para proceder con la insercion
+    # Escoge los nodos para proseguir con insercion
     def chooseTree(self, mbrPointer):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.select(mbrPointer, childrenMbrs)

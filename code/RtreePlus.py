@@ -112,6 +112,14 @@ class RtreePlus(RtreeApi):
         super(RtreePlus, self).goToLastLevel()
         return RtreePlusUpdateReferenceStatus(self)
 
+    # Escoge los nodos que intersectan con el mbr para proceder con la insercion, si no encuentra, entrega el mas cercano
+    def chooseTree(self, mbrPointer):
+        trees = super(RtreePlus, self).chooseTree(mbrPointer)
+        if len(trees) == 0:
+            return [self.chooseNearestTree(mbrPointer)]
+        else:
+            return trees
+
     def chooseNearestTree(self, mbrPointer):
         return self.sa.selectNearest(mbrPointer, self.currentNode.getChildren())
 
@@ -125,9 +133,6 @@ class RtreePlus(RtreeApi):
         # Bajo por todos los nodos adecuados
         if self.currentNode.isANode():
             trees = self.chooseTree(mbrPointer)
-
-            if len(trees) == 0:
-                trees = [self.chooseNearestTree(mbrPointer)]
 
             for next in trees:
                 if not self.nodeIsVisited(next):
