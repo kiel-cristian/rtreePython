@@ -42,7 +42,7 @@ class RtreePlus(RtreeApi):
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0):
-        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "r+tree")
+        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "rplustree")
         # Algoritmo de seleccion de mejor nodo a insertar
         # en base a interseccion de areas
         self.pa = SweepPartition()
