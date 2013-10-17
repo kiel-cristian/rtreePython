@@ -31,7 +31,7 @@ class RtreeFileHandler(object):
         self.loadDataFile = "../data/" + loadDataFile
 
         self.M = M   # Cantidad maxima de entradas
-        self.m = M/2 # Cantidad minima de entradas
+        self.m = int(M/2) # Cantidad minima de entradas
         self.d = d   # dimension
 
         floatSize   = struct.calcsize("f")

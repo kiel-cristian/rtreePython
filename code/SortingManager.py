@@ -46,7 +46,7 @@ class SortingManager():
             else:
                 return [elements[1]] + [elements[0]]
 
-        div = l/2
+        div = int(l/2)
         random.shuffle(elements)
         self.cost = self.cost + div
 
