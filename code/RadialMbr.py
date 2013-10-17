@@ -1,4 +1,3 @@
-import random
 from math import sqrt
 from math import pi
 from MbrApi import *
