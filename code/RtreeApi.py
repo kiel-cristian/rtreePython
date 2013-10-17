@@ -195,19 +195,18 @@ class RtreeApi(object):
         return MNode(M=self.M(), d=self.d())
 
     # Busqueda radial de objeto
-    def search(self, radialMbr, fileResults, genFile= True, verbose=False):
+    def search(self, radialMbr, fileResults, verbose=False, genFile=False):
         if genFile:
-            fileResults.write("%s %s\n" % (str(radialMbr), datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
-        t0 = time()
-        self.searchR(radialMbr, fileResults, genFile, verbose)
+            fileResults.write("%s %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),str(radialMbr)))
+        t0 = time()        
+        self.searchR(radialMbr, fileResults, verbose, genFile)
         t1 = time()
         if genFile:
             fileResults.write("\n\n")
-
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
 
-    def searchR(self, radialMbr, file, genFile, verbose):
+    def searchR(self, radialMbr, file, verbose, genFile):
         results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
@@ -225,13 +224,13 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-
+                
         if genFile:
             for r in results:
-                file.write(str(r)+" ")
+                file.write(str(r) + " ")
         if verbose:
             for r in results:
-                print(r)
+                print(str(r))
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):
