@@ -23,7 +23,7 @@ class RtreeApi(object):
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M=100, maxE=100000, reset=False, initOffset=0, dataFile='rtree'):
         self.nfh = RtreeFileHandler(loadDataFile="data" + str(d) + "D.bin",
-                                    dataFile=dataFile + str(d) + "D.bin",
+                                    dataFile=dataFile + str(d) + "D"+str(M)+"M.bin",
                                     d=d, M=M,
                                     initOffset=initOffset)
 
