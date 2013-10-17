@@ -40,9 +40,7 @@ if __name__ == '__main__':
                   gen = MbrGenerator()
                   mTree = Rtree(d=d, M=M, maxE=10 ** 6, reset=True, initOffset=0, partitionType=partitionType)
                   f = open("Resultados.txt", 'w+')
-                  fb = open("Resultados Busqueda.txt", 'w+')
                   f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M") + "\n")
-                  fb.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M") + "\n")
                   f.write("d=%d M=%d partitionType=%d\n" % (d, M, partitionType))
                   f.write("meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes\n")
                   # Construyo el Rtree con los elementos
@@ -53,14 +51,14 @@ if __name__ == '__main__':
                   print("Insercion n:%d" % k)
                   k += 1
                   f.close()
-                  fb.close()
+                  fileName = "../searchs/" + str(mTree.treeType) + " M" + str(mTree.M()) + " d" + str(mTree.d()) + " busqueda.bin"
                   # Construyo los elementos de consulta
                   for radio in [0.25, 0.50, 0.75]:
                       for n in range (1, 6):
                           f = open("Resultados.txt", 'w+')
-                          fb = open("Resultados Busqueda.txt", 'w+')
+                          fb = open(fileName, 'w+')
                           for s in range (n * 10 ** 3):
-                              mTree.search(gen.nextRadial(d=d, r=radio * (d ** 0.5)), fb)
+                              mTree.search(gen.nextRadial(d=d, r=radio * (d ** 0.5)), fb,False, True)
                           f.write("%f %f\n" % (mTree.getMeanVisitedNodes(), mTree.meanSearchTime))
                           f.close()
                           fb.close()

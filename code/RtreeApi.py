@@ -33,6 +33,7 @@ class RtreeApi(object):
         self.cache = []  # cache: lista de nodos visitados
         self.k = 0  # k: nodos en cache
         self.H = int(ceil(log(maxE, self.M())) - 1)  # H: altura maxima del arbol
+        self.E = maxE
 
         # Metricas
         # Mean insertion time
@@ -58,6 +59,7 @@ class RtreeApi(object):
 
         self.currentNode = None
         self.root = None
+        self.treeType = dataFile
 
         # Inicializacion de la raiz
         if reset:
@@ -192,23 +194,25 @@ class RtreeApi(object):
         return MNode(M=self.M(), d=self.d())
 
     # Busqueda radial de objeto
-    def search(self, radialMbr, fileResults, verbose=False):
-        fileResults.write("%s %s\n" % (str(radialMbr), datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
+    def search(self, radialMbr, fileResults, verbose=False, genFile=False):
+        if genFile:
+            fileResults.write("%s %s\n" % (str(radialMbr), datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
         t0 = time()        
-        self.searchR(radialMbr, fileResults, verbose)
+        self.searchR(radialMbr, fileResults, verbose, genFile)
         t1 = time()
-        fileResults.write("\n\n")
+        if genFile:
+            fileResults.write("\n\n")
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
 
-    def searchR(self, radialMbr, file, verbose):
+    def searchR(self, radialMbr, file, verbose, genFile):
         results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
             selections = self.chooseTreeForSearch(radialMbr)
             for s in  selections:
                 self.seekNode(s)
-                self.searchR(radialMbr, file, verbose)
+                self.searchR(radialMbr, file, verbose, genFile)
         else:
             for c in self.currentNode.getChildren():
                 if radialMbr.areIntersecting(c):
@@ -219,8 +223,13 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-        for r in results:
-            file.write(str(r) + " ")
+                
+        if genFile:
+            for r in results:
+                file.write(str(r) + " ")
+        if verbose:
+            for r in results:
+                print(str(r))
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):

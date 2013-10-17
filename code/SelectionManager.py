@@ -61,7 +61,7 @@ class RtreePlusSelection(SelectionManager):
                 minDist = dist
                 selected = mbp
         if selected == None:
-            raise SelectionError("doh")
+            raise SelectionError("No se encontro nodo mas cercano a mbr")
         else:
             return selected
 
