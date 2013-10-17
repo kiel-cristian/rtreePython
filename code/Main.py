@@ -51,6 +51,7 @@ def basicTest():
 
 if __name__ == '__main__':
 #     basicTest()
+    resFileName = "../results/Resultados.txt"
     for j in range(1, 11):
         k = 1
         for partitionType in [0, 1]:
@@ -59,7 +60,6 @@ if __name__ == '__main__':
               for M in [50, 100]:
                   gen = MbrGenerator()
                   mTree = Rtree(d=d, M=M, maxE=10 ** 6, reset=True, initOffset=0, partitionType=partitionType)
-                  resFileName = "../results/Resultados.txt"
                   f = open(resFileName, 'a+')
                   f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
                   f.write(" d=%d M=%d partitionType=%d\n" % (d, M, partitionType))
