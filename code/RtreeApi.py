@@ -194,7 +194,8 @@ class RtreeApi(object):
 
     # Busqueda radial de objeto
     def search(self, radialMbr, verbose = False):
-        fileName = "../searchs/E:" + str(self.E) + " M:" + str(self.M()) + " d:" + str(self.d()) + " busqueda %s.txt"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        t = self.treeType
+        fileName = "../searchs/" + str(t) + " E:" + str(self.E) + " M:" + str(self.M()) + " d:" + str(self.d()) + " busqueda %s.txt"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         f = open(fileName, 'w+')
         f.write(str(radialMbr) + "\n\n")
         t0 = time()

@@ -17,6 +17,7 @@ class Rtree(RtreeApi):
             self.pa = LinealPartition()
         elif partitionType == 1:
             self.pa = CuadraticPartition()
+        self.treeType = "rtree"
 
     def insert(self, mbrPointer):
         t0 = time()
