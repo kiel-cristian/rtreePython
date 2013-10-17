@@ -32,7 +32,7 @@ if __name__ == '__main__':
 #         mTree.insert(gen.next(d = 2))
 #         for s in range (10):
 #             mTree.search(gen.nextRadial(d = 2, r = 0.25 * (2 ** 0.5)))
-    f = open("Resultados.txt", 'w+')
+    f = open("../results/Resultados.txt", 'w+')
     f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")+ "\n")
     for partitionType in [0,1,2]:
       for d in [2, 4, 8, 16]:
