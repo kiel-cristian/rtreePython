@@ -99,13 +99,13 @@ class RtreePlus(RtreeApi):
                 if not self.nodeIsVisited(next):
                     self.seekNode(next)
                     self.markNodeAsVisited(next)
+
                     lastStatus = self.insertR(mbrPointer)
                     while lastStatus != None:
                         lastStatus = lastStatus.handle()
 
-                    if self.currentHeigth() > 0:
-                        self.chooseParent()
-                    return None
+                    self.chooseParent()
+            return None
         # Al encontrar una hoja
         else:
             if self.currentNode.needToSplit():
