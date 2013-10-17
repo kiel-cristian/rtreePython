@@ -40,6 +40,7 @@ def basicTest():
     f.write("meanVisited meanQueryTime\n")
     f.close()
     fileName = "../results/busqueda test " + str(mTree.treeType) + " M" + str(mTree.M()) + " d" + str(mTree.d()) + ".bin"
+    mTree = Rtree(d=4, M=25, maxE=10 ** 6, reset=False, initOffset=0, partitionType=0)
     # Construyo los elementos de consulta
     f = open(resFileName, 'a+')
     fb = open(fileName, 'a+')
