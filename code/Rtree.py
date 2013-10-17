@@ -52,8 +52,16 @@ class Rtree(RtreeApi):
         self.save(self.currentNode)  # Guardo el nodof (u hoja) antiguo en disco
         self.save(newRtree)          # Guardo el nuevo nodo (u hoja) en disco
 
-        treeMbrPointer = newRtree.getMbrPointer()
-        return treeMbrPointer
+        return newRtree.getMbrPointer()
+
+    # Ajusta mbrs de todos los nodos hasta llegar a la raiz
+    def propagateAdjust(self):
+        while self.currentHeigth() > 0:
+            childMbrPointer = self.currentNode.getMbrPointer()
+
+            self.chooseParent() # cambia currentNode y sube un nivel del arbol
+
+            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
     # Propaga el split hasta donde sea necesario
     def propagateSplit(self, splitMbrPointer):
@@ -77,7 +85,6 @@ class Rtree(RtreeApi):
                 self.insertChild(lastSplit)
                 break
         self.propagateAdjust()
-        self.goToRoot()
 
 if __name__ == "__main__":
     d = 2

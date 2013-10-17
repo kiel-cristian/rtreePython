@@ -223,6 +223,12 @@ class RtreeApi(object):
     def currentHeigth(self):
         return self.k
 
+    def currentParent(self):
+        return self.cache[-1]
+
+    def setParent(self, tree):
+        self.cache[-1] = tree
+
     # Guarda el nodo actual en disco
     def save(self,tree = None):
         if tree != None:
@@ -288,15 +294,6 @@ class RtreeApi(object):
     def chooseTreeForSearch(self, mbrO):
         childrenMbrs = self.currentNode.getChildren()
         return self.sa.radialSelect(mbrO, childrenMbrs)
-
-    # Ajusta mbrs de todos los nodos hasta llegar a la raiz
-    def propagateAdjust(self):
-        while self.currentHeigth() > 0:
-            childMbrPointer = self.currentNode.getMbrPointer()
-
-            self.chooseParent() # cambia currentNode y sube un nivel del arbol
-
-            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
 
     def incrementMeanSearchTime(self, delta):
         if self.meanSearchTime == None:

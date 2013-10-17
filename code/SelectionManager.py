@@ -52,7 +52,6 @@ class RtreePlusSelection(SelectionManager):
         return selected
 
     def selectNearest(self,mbrPointer, mbrPointersList):
-        selected = []
         minDist  = None
         selected = None
         for mbp in mbrPointersList:
@@ -60,11 +59,12 @@ class RtreePlusSelection(SelectionManager):
             if minDist == None or minDist > dist:
                 minDist = dist
                 selected = mbp
-        if selected == None:
-            raise SelectionError("doh")
-        else:
-            return selected
+        return selected
 
+    def selectAny(self, mbrPointersList):
+        for mbr in mbrPointersList:
+            if mbr.getPointer() != -1:
+                return mbr
 
 def newMbrPointer(point):
     return MbrPointer(Mbr(2).setPoint(point), 0)
