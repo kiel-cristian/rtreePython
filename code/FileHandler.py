@@ -27,8 +27,8 @@ class RtreeDeleteError(FileHandlerError):
 
 class RtreeFileHandler(object):
     def __init__(self, loadDataFile, dataFile, d, M, initOffset = 0):
-        self.dataFile     = "data/" + dataFile
-        self.loadDataFile = "data/" + loadDataFile
+        self.dataFile     = "../data/" + dataFile
+        self.loadDataFile = "../data/" + loadDataFile
 
         self.M = M   # Cantidad maxima de entradas
         self.m = M/2 # Cantidad minima de entradas
