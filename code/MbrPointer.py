@@ -1,4 +1,3 @@
-import random
 from MbrApi import *
 from Mbr import Mbr
 
@@ -8,7 +7,7 @@ class MbrPointer(MbrApi):
         self.mbr         = mbr
         self.pointer = pointer
     def __str__(self):
-        return "[MbrPointer]{ mbr: " + str(self.mbr) + ", p: " + str(self.pointer) + "}"
+        return "MbrPointer:" + str(self.mbr) + ", " + str(self.pointer)
     def getMin(self,d):
         return self.mbr.getMin(d)
     def getMax(self,d):
@@ -32,7 +31,3 @@ class MbrPointer(MbrApi):
         return self.getMbr().areIntersecting(mbrPointer.getMbr())
     def getCenter(self):
         return self.getMbr().getCenter()
-
-def randomMbrPointer(d):
-    randomPoint = [random.random() for _ in range(d)]
-    return MbrPointer(Mbr(d).setPoint(randomPoint), int(randomPoint[0]*1000))

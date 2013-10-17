@@ -9,7 +9,7 @@ class Mbr(MbrApi):
         self.dRanges = self.listToRange(self.coords)
 
     def __str__(self):
-        return "[Mbr]{ ranges: " + str(self.dRanges) + "}"
+        return "Mbr:" + str(self.dRanges)
 
     def cutOnDimension(self, dToCut, cut):
         dumpCopy = self.dump()[:]
@@ -67,12 +67,6 @@ class Mbr(MbrApi):
             dRanges = dRanges + [[dimensionMin, dimensionMax]]
         return dRanges
 
-    def equals(self, mbr):
-        for d in range(self.d):
-            if self.getMin(d) != mbr.getMin(d) or self.getMax(d) != mbr.getMax(d):
-                return False
-        return True
-
     def len(self):
         return self.d * 2
 
@@ -100,26 +94,6 @@ class Mbr(MbrApi):
     def deadSpace(self, mbr):
         return self.returnExpandedMBR(mbr).getArea() - (self.getArea() + mbr.getArea())
 
-    def checkExpand(self, mbr):
-        a = 1
-        diff = 0
-        for i in range(self.d):
-            dMin = self.getMin(i)
-            dMax = self.getMax(i)
-
-            if mbr.getMin(i) < dMin:
-                diff = dMin - mbr.getMin(i)
-
-            if mbr.getMax(i) > dMax:
-                diff = diff + (dMax - mbr.getMax(i))
-
-            a = a * diff
-
-        if a > 0 or not self.equals(mbr):
-            return [True, a]
-        else:
-            return [False, 0]
-
     # Retorna un MBR que incluya el actual y el mbr dado
     def returnExpandedMBR(self, mbr):
         expandedMbr = Mbr(self.d)
@@ -142,10 +116,10 @@ class Mbr(MbrApi):
             dMin = self.getMin(i)
             dMax = self.getMax(i)
 
-            if mbr.getMin(i) < dMin:
+            if mbr.getMin(i) < dMin or dMin == 1:
                 self.setMin(i, mbr.getMin(i))
 
-            elif mbr.getMax(i) > dMax:
+            if mbr.getMax(i) > dMax or dMax == 0:
                 self.setMax(i, mbr.getMax(i))
 
     def areIntersecting(self,mbr):
@@ -195,7 +169,6 @@ if __name__ == "__main__":
 
     m2 = Mbr(2)
     m2.setPoint([0.3, 0.7])
-    print(m.checkExpand(m2))
 
     m.setPoint([0.3, 0.7])
     print(m.distanceTo(m2) == 0)

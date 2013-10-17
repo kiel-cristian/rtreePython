@@ -19,8 +19,6 @@ class SelectionManager():
         pass
     def select(self,mbrPointer, mbrPointersList):
         pass
-
-class RtreeSelection(SelectionManager):
     def radialSelect(self, radialMbr, mList):
         intersections = []
         for m in mList:
@@ -28,6 +26,7 @@ class RtreeSelection(SelectionManager):
                 intersections = intersections + [m]
         return intersections
 
+class RtreeSelection(SelectionManager):
     def select(self,mbrPointer, mbrPointersList):
         minimum = None
         selected = None
@@ -52,12 +51,20 @@ class RtreePlusSelection(SelectionManager):
                 selected = selected + [mbr]
         return selected
 
-    def selectAny(self, mbrPointersList):
-        for mbrP in mbrPointersList:
-            if mbrP.getPointer() > 0: # Puntero no nulo
-                return mbrP
-        # No se encontro ningun nodo, por ende, es necesario generar uno nuevo
-        return None
+    def selectNearest(self,mbrPointer, mbrPointersList):
+        selected = []
+        minDist  = None
+        selected = None
+        for mbp in mbrPointersList:
+            dist = mbrPointer.distanceTo(mbp)
+            if minDist == None or minDist > dist:
+                minDist = dist
+                selected = mbp
+        if selected == None:
+            raise SelectionError("No se encontro nodo mas cercano a mbr")
+        else:
+            return selected
+
 
 def newMbrPointer(point):
     return MbrPointer(Mbr(2).setPoint(point), 0)

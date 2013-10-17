@@ -1,4 +1,3 @@
-import random
 from math import sqrt
 from math import pi
 from MbrApi import *
@@ -11,7 +10,7 @@ class RadialMbr(MbrApi):
         self.center = point
         self.r            = r
     def __str__(self):
-        return "[RadialMbr]{ center: " + str(self.center) + ", r: " + str(self.r) + "}"
+        return "RadialMbr:" + str(self.center) + ", " + str(self.r) + "\n"
     def getMin(self,d):
         return self.center[d]
     def getMax(self,d):
@@ -32,9 +31,22 @@ class RadialMbr(MbrApi):
             delta = delta + (mbrCenter[d] - thisCenter[d])**2
         return sqrt(delta)
     def getArea(self):
-        return pi*self.r**2/2
+        return pi*self.r**2/2 
     def areIntersecting(self,mbrObject):
-        return self.distanceTo(mbrObject) <= self.r
+        distanceDimension = []
+        dimensionLength = []
+        for d in range(self.d):
+            dimensionLength = dimensionLength + [mbrObject.getMax(d) - mbrObject.getMin(d)]
+            distanceDimension =  distanceDimension + [abs(self.getCenter()[d] - mbrObject.getMin(d) - dimensionLength[d]/2)];
+            if distanceDimension[d] > (dimensionLength[d]/2 + self.getR()):
+                return False
+        for d in range(self.d):
+            if distanceDimension[d] <= (dimensionLength[d]/2): 
+                return True
+        cornerDistance = 0
+        for d in range(self.d):
+            cornerDistance = cornerDistance + (distanceDimension[d] - dimensionLength[d]/2)**2
+        return cornerDistance <= (self.getR()**2)
 
 def randomRadialMbr(d, r):
     return RadialMbr(d, [random.random() for _ in range(d)], r)

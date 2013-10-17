@@ -1,6 +1,7 @@
 # encoding: utf-8
 from SelectionManager import *
 from RtreeApi import *
+from MbrGenerator import *
 
 # Clases auxiliares para manejar estados posibles posteriores a una insercion recursiva.
 # La idea de usar estas estructuras es la de manejar los casos de borde sin salir de la recursion principal
@@ -41,39 +42,50 @@ class RtreePlus(RtreeApi):
     # reset      : cuando es True, se construye un nuevo arbol, si no, se carga de disco
     # initOffset : offset desde se cargara nodo raiz
     def __init__(self, d, M = 100, maxE = 100000, reset = False, initOffset = 0):
-        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "r+tree")
+        super(RtreePlus, self).__init__(d = d, M = M, maxE = maxE, reset = reset, initOffset = initOffset, dataFile = "rplustree")
         # Algoritmo de seleccion de mejor nodo a insertar
         # en base a interseccion de areas
+        self.pa = SweepPartition()
         self.sa = RtreePlusSelection()
-        self.visitedNodes = {}
+        self.reachedNodes = {}
 
         for h in range(self.H):
-            self.visitedNodes[h]  = {}
+            self.reachedNodes[h]  = {}
 
     def goToRoot(self):
         for h in range(self.H):
-            self.visitedNodes[h]  = {}
+            self.reachedNodes[h]  = {}
         super(RtreePlus, self).goToRoot()
 
     def insert(self, mbrPointer):
         t0 = time()
 
         self.insertR(mbrPointer)
-        self.goToRoot()
 
         t1 = time()
         self.incrementMeanInsertionTime(t1-t0)
         self.computeMeanNodes()
+        self.goToRoot()
 
     def markNodeAsVisited(self, next):
-        self.visitedNodes[self.currentHeigth()][next.getPointer()] = True
+        try:
+            self.reachedNodes[self.currentHeigth()][next.getPointer()] = True
+        except:
+            self.reachedNodes[self.currentHeigth()] = {}
+            self.reachedNodes[self.currentHeigth()][next.getPointer()] = True
 
     def nodeIsVisited(self, next):
-        return self.visitedNodes[self.currentHeigth()][next.getPointer()] == True
+        try:
+            return self.reachedNodes[self.currentHeigth()][next.getPointer()] == True
+        except:
+            return False
 
     def goToLastLevel(self):
         super(RtreePlus, self).goToLastLevel()
         return RtreePlusStatus(self)
+
+    def chooseNearestTree(self, mbrPointer):
+        return self.sa.selectNearest(mbrPointer, self.currentNode.getChildren())
 
     def insertR(self, mbrPointer):
         # Bajo por todos los nodos adecuados
@@ -81,22 +93,23 @@ class RtreePlus(RtreeApi):
             trees = self.chooseTree(mbrPointer)
 
             if len(trees) == 0:
-                self.insertOnNewNode(mbrPointer)
-                return None
-            else:
-                for next in trees:
-                    if not self.nodeIsVisited(next):
-                        self.seekNode(next)
-                        self.markNodeAsVisited(next)
-                        lastStatus = self.insertR(mbrPointer)
-                        while lastStatus != None:
-                            lastStatus = lastStatus.handle()
-                        self.chooseParent()
-                        return None
+                trees = [self.chooseNearestTree(mbrPointer)]
+
+            for next in trees:
+                if not self.nodeIsVisited(next):
+                    self.seekNode(next)
+                    self.markNodeAsVisited(next)
+
+                    lastStatus = self.insertR(mbrPointer)
+                    while lastStatus != None:
+                        lastStatus = lastStatus.handle()
+
+                    self.chooseParent()
+            return None
         # Al encontrar una hoja
         else:
             if self.currentNode.needToSplit():
-                newLeaf = self.splitLeaf(self.currentNode.getChildren() + [mbrPointer])
+                newLeaf = self.splitLeaf(mbrPointer)
                 return RtreePlusSplitStatus(self, newLeaf)
             else:
                 self.insertChild(mbrPointer)
@@ -123,11 +136,11 @@ class RtreePlus(RtreeApi):
     # Ajusta Mbr del nodo padre del nodo actual
     def adjustOneLevel(self):
         if self.currentHeigth() > 0:
-            childMbrPointer = self.currentNode.getMbrPointer()
+            lastNode = self.currentNode.getMbrPointer()
 
             self.chooseParent(destructive = False) # cambia currentNode y sube un nivel del arbol
 
-            self.updateChild(childMbrPointer) # actualiza el nodo actual con la nueva version de su nodo hijo
+            self.updateChild(lastNode) # actualiza el nodo actual con la nueva version de su nodo hijo
 
             return RtreePlusAdjustStatus(self)
         else:
@@ -136,11 +149,12 @@ class RtreePlus(RtreeApi):
     # Analogo a insert, inserta nodo de split en el padre
     def splitOneLevel(self, splitMbrPointer, internalMode = False):
         lastSplit = splitMbrPointer
+        lastNode  = self.currentNode.getMbrPointer()
 
         if self.currentHeigth() > 0:
             self.chooseParent(destructive = False) # cambia currentNode y sube un nivel del arbol
 
-            self.updateChild(self.currentNode.getMbrPointer())
+            self.updateChild(lastNode)
 
             if self.needToSplit():
                 if self.currentNode.isANode():
@@ -228,12 +242,21 @@ class RtreePlus(RtreeApi):
 
 if __name__ == "__main__":
     d = 2
-    M = 100
-    rtree = RtreePlus(d = d, M = 10, maxE = 10**6, reset = True, initOffset = 0)
+    M = 4
+    E = 20
+    r = 0.25
 
-    objects = [randomMbrPointer(d) for i in range(200)]
+    rtree = RtreePlus(d = d, M = M, maxE = E, reset = True, initOffset = 0)
+    gen = MbrGenerator()
+    objects = [gen.next(d) for i in range(E)]
+    print("Data generada")
 
     for o in objects:
         rtree.insert(o)
 
-    # print(rtree)
+    print(rtree)
+
+    print(gen.nextRadial(d, r))
+    randomMbr = gen.nextRadial(d, r*(d**0.5))
+    print("Generando busqueda")
+    rtree.search(radialMbr = randomMbr, fileResults = None, verbose = True, genFile = False)
