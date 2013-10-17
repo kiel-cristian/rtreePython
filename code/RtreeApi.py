@@ -226,8 +226,10 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-        for r in results:
-            file.write(str(r)+" ")
+        if verbose:
+            for r in results:
+                file.write(str(r)+" ")
+        return results
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):

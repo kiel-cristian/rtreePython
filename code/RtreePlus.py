@@ -239,7 +239,7 @@ class RtreePlus(RtreeApi):
 if __name__ == "__main__":
     d = 2
     M = 25
-    E = 10**3
+    E = 10**2
     r = 0.25
 
     rtree = RtreePlus(d = d, M = M, maxE = E, reset = True, initOffset = 0)
