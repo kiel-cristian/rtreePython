@@ -201,12 +201,13 @@ class RtreeApi(object):
             f = open(fileName, 'w+')
             f.write(str(radialMbr) + "\n\n")
         t0 = time()
-        self.searchR(radialMbr, f, verbose)
+        results = self.searchR(radialMbr, f, verbose)
         t1 = time()
         if verbose:
             f.close()
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
+        return results
 
     def searchR(self, radialMbr, file, verbose):
         results = []
@@ -229,7 +230,9 @@ class RtreeApi(object):
         if verbose:
             for r in results:
                 file.write(str(r)+" ")
-        return results
+            return results
+        else:
+            return None
 
     # Insercion de un mbrPointer
     def insert(self, mbrPointer):
