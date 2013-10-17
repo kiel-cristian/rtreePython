@@ -79,7 +79,7 @@ class Rtree(RtreeApi):
         self.propagateAdjust()
         self.goToRoot()
 
-if __name__ == "__main__":
+def simpleTest():
     d = 2
     M = 25
     E = 10**3
@@ -98,3 +98,16 @@ if __name__ == "__main__":
     randomMbr = gen.nextRadial(d, r*(d**0.5))
     print("Generando busqueda")
     rtree.search(radialMbr = randomMbr, fileResults = None, verbose = True, genFile = False)
+
+def loadTest():
+    d = 2
+    M = 25
+    E = 10**3
+    r = 0.25
+    rtree = Rtree(d = d, M = M, maxE = E, reset = False, initOffset = 0, partitionType = 0)
+
+    print(rtree)
+
+if __name__ == "__main__":
+    # simpleTest()
+    loadTest()
