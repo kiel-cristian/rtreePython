@@ -33,6 +33,7 @@ class RtreeApi(object):
         self.cache = []                              # cache: lista de nodos visitados
         self.k = 0                                   # k: nodos en cache
         self.H = int(ceil(log(maxE, self.M())) -1)   # H: altura maxima del arbol
+        self.E = maxE
 
         #Metricas
         #Mean insertion time
@@ -193,9 +194,10 @@ class RtreeApi(object):
 
     # Busqueda radial de objeto
     def search(self, radialMbr, verbose = False):
-        f = open("Busqueda %s.txt"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"), 'w+')
+        fileName = "../searchs/E:" + str(self.E) + " M:" + str(self.M()) + " d:" + str(self.d()) + " busqueda %s.txt"%datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        f = open(fileName, 'w+')
         f.write(str(radialMbr) + "\n\n")
-        t0 = time()        
+        t0 = time()
         self.searchR(radialMbr, f, verbose)
         t1 = time()
         f.close()
