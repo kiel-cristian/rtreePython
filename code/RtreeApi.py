@@ -197,7 +197,7 @@ class RtreeApi(object):
     # Busqueda radial de objeto
     def search(self, radialMbr, fileResults, verbose=False, genFile=False):
         if genFile:
-            fileResults.write("%s %s\n" % (str(radialMbr), datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
+            fileResults.write("%s %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),str(radialMbr)))
         t0 = time()        
         self.searchR(radialMbr, fileResults, verbose, genFile)
         t1 = time()
@@ -206,7 +206,7 @@ class RtreeApi(object):
         self.incrementMeanSearchTime(t1 - t0)
         self.goToRoot()
 
-    def searchR(self, radialMbr, file, genFile, verbose):
+    def searchR(self, radialMbr, file, verbose, genFile):
         results = []
         if self.currentNode.isANode():
             self.incrementVisitedNodes()
