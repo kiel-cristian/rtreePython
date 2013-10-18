@@ -82,9 +82,9 @@ class Rtree(RtreeApi):
 def simpleTest():
     d = 2
     M = 25
-    E = 10**3
+    E = 10**4
     r = 0.25
-    rtree = Rtree(d = d, M = M, maxE = E, reset = True, initOffset = 0, partitionType = 0)
+    rtree = Rtree(d = d, M = M, maxE = E, reset = True, initOffset = 0, partitionType = 1)
     gen = MbrGenerator()
     objects = [gen.next(d) for i in range(E)]
     print("Data generada")
@@ -102,12 +102,12 @@ def simpleTest():
 def loadTest():
     d = 2
     M = 25
-    E = 10**3
+    E = 10**4
     r = 0.25
-    rtree = Rtree(d = d, M = M, maxE = E, reset = False, initOffset = 0, partitionType = 0)
+    rtree = Rtree(d = d, M = M, maxE = E, reset = False, initOffset = 0, partitionType = 1)
 
     print(rtree)
 
 if __name__ == "__main__":
-    # simpleTest()
+    simpleTest()
     loadTest()
