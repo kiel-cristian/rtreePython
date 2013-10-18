@@ -324,12 +324,11 @@ class RtreePlus(RtreeApi):
             else:
                 self.insertOneLevel(newNode.getMbrPointer(), parent, k)
 
-if __name__ == "__main__":
+def simpleTest():
     d = 2
     M = 4
     E = 20
     r = 0.25
-
     rtree = RtreePlus(d = d, M = M, maxE = E, reset = True, initOffset = 0)
     gen = MbrGenerator()
     objects = [gen.next(d) for i in range(E)]
@@ -344,3 +343,17 @@ if __name__ == "__main__":
     randomMbr = gen.nextRadial(d, r*(d**0.5))
     print("Generando busqueda")
     rtree.search(radialMbr = randomMbr, fileResults = None, verbose = True, genFile = False)
+
+def loadTest():
+    d = 2
+    M = 4
+    E = 20
+    r = 0.25
+
+    rtree = RtreePlus(d = d, M = M, maxE = E, reset = False, initOffset = 0)
+
+    print(rtree)
+
+if __name__ == "__main__":
+    simpleTest()
+    loadTest()
