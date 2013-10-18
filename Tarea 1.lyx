@@ -157,17 +157,105 @@ Auxiliar: Teresa Bracamonte
 Introducción 
 \end_layout
 
+\begin_layout Standard
+
+\lang spanish
+Para poder buscar en espacios geométricos multidimensionales es necesario
+ una estructura que permita hacer búsquedas de forma eficiente, así como
+ manejar grandes volúmenes de datos.
+ Estos datos en general no caben en memoria primaria, por lo que es necesario
+ que la estructura de datos elegida pueda ser eficiente en memoria secundaria
+ también.
+ Para solucionar estas necesidades se analizara el desempeño de 
+\begin_inset Formula $R-Trees$
+\end_inset
+
+ y 
+\begin_inset Formula $R^{+}-Trees$
+\end_inset
+
+ bajo diferentes variables con el fin de ver sus limitaciones.
+\end_layout
+
+\begin_layout Chapter
+
+\lang spanish
+Implementación y antecedentes
+\end_layout
+
+\begin_layout Section
+
+\lang spanish
+MBR
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Los MBR o Minimum Bounding Rectangle son una representación de la frontera
+ de una figura geométrica, de forma de facilitar la representación de la
+ misma y la búsqueda.
+ Teniendo esta representación se puede agilizar considerablemente el computo
+ de intersecciones entre figuras.
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Para el caso multidimensional los mbr tienen un valor mínimo y máximo para
+ cada dimensión.
+\end_layout
+
 \begin_layout Section
 
 \lang spanish
 \begin_inset Formula $R-Tree$
 \end_inset
 
- y 
+
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+Un 
+\begin_inset Formula $R-Tree$
+\end_inset
+
+ es un árbol balanceado que permite indexar elementos geométricos multidimension
+ales.
+ Estos árboles tienen sus elementos en las hojas y cada nodo tiene un mbr
+ que es el mbr de todos los hijos del nodo.
+ Los nodos tienen un número máximo de elementos, tal que si se alcanza,
+ se divide el nodo, creando 2 nodos con espacio para más elementos y el
+ nuevo nodo se añade al padre, que a su vez puede volver a dividirse si
+ está lleno.
+\end_layout
+
+\begin_layout Section
+
+\lang spanish
 \begin_inset Formula $R^{+}-Tree$
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+La diferencia de este árbol con la versión anterior es que en el anterior
+ los mbr's de los nodos pueden superponerse con los de sus hermanos, pero
+ aca, al insertar un mbr, se inserta en todos los nodos en los que intersecta,
+ y al llenarse un nodo se divide de forma de que haya una partición optima
+ de los elementos y que los mbr's de los hermanos no se superpongan entre
+ si.
+\end_layout
+
+\begin_layout Section
+
+\lang spanish
+Implementación
 \end_layout
 
 \begin_layout Standard
@@ -224,6 +312,14 @@ MLeaf
 \end_layout
 
 \end_deeper
+\begin_layout Standard
+
+\lang spanish
+Los elementos de cada nodo son MBRPointers que son tuplas mbr, puntero,
+ donde el puntero es el offset a la posición en el archivo que almacena
+ el nodo siguiente
+\end_layout
+
 \begin_layout Standard
 
 \lang spanish
@@ -303,17 +399,111 @@ Donde hay una para cada tipo de árbol, y en el caso del Rtree entrega un
  que intersectan con el nuevo.
 \end_layout
 
+\begin_layout Standard
+
+\lang spanish
+Los MBR se implementan como una lista de puntos de largo 
+\begin_inset Formula $2*dimensión\,\Rightarrow16*d\, bytes$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\lang spanish
+De esta forma cada elemento de un nodo tiene: 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\lang english
+
+\begin_inset Formula $(4+16*d)\, bytes$
+\end_inset
+
+, debido al puntero.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\lang english
+Teniendo estos tamaños podríamos optimizar el número de elementos de un
+ nodo, para que coincida con el tamaño de un bloque de disco.
+ Sin embargo para esta implementación se considerarán nodos de tamaño predefinid
+o solamente.
+\end_layout
+
+\begin_layout Standard
+Antes de correr Main.py deben crearse las carpetas 
+\begin_inset Quotes eld
+\end_inset
+
+data
+\begin_inset Quotes erd
+\end_inset
+
+ y 
+\begin_inset Quotes eld
+\end_inset
+
+results
+\begin_inset Quotes erd
+\end_inset
+
+ en el directorio superior, al de Main.py.
+ Corriendo este archivo se generaran los resultados para las métricas en
+ la carpeta results.
+ Los resultados de las búsquedas en un árbol se guardan en el archivo (abierto)
+ que se le pase al método search.
+ Estos resultados pueden ser los MBRPointers o los punteros dependiendo
+ de los parámetros de search, donde los punteros son los offset a la posición
+ en el archivo binario que contiene el árbol
+\end_layout
+
 \begin_layout Chapter
 
 \lang spanish
 Experimentos
 \end_layout
 
-\begin_layout Section
-Inserción
+\begin_layout Standard
+
+\lang spanish
+Inicialmente para los experimentos se sugería en el peor caso probar con
+ 1.000.000 inserciones en el árbol, de elementos de 256 dimensiones, pero
+ se consideró que este número era excesivo desde un punto de vista de tiempo
+ de computo y porque se podría ver la tendencia con muchos menos datos.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Standard
+
+\lang spanish
+Los datos se fueron generando a medida que se necesitaban, de forma de dejar
+ al árbol manejar la memoria necesaria para almacenar estos mismos.
+\end_layout
+
+\begin_layout Section
+Inserción 
 \begin_inset Formula $R-Tree$
 \end_inset
 
@@ -342,9 +532,303 @@ Se probó la inserción en el árbol considerando 100.000 elementos a insertar,
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="5">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dimensión
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Máx por nodo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+50
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+100
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+50
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+100
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio particiones por nodo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,998608333 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,997790667 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,998622 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,997766667 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio de tiempo de inserción
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,002985667 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,003647667 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,003977 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0,005065667 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio de nodos totales
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1789,200533 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+892,9387833 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1801,196757 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+875,04526 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio de notos internos
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+58,86965 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+14,23673667 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+53,58915 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+12,83974 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
 
 \end_layout
 
@@ -352,7 +836,7 @@ status collapsed
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
+Particionamiento lineal
 \end_layout
 
 \end_inset
@@ -367,77 +851,10 @@ status collapsed
 \end_inset
 
 
-\end_layout
-
-\begin_layout Subsubsection
-Análisis
-\end_layout
-
-\begin_layout Standard
-E
-\end_layout
-
-\begin_layout Subsection
-\begin_inset Formula $R^{+}-Tree$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
-Resultados
-\end_layout
-
-\begin_layout Standard
-Se probó la inserción en el árbol considerando 100.000 elementos a insertar,
- y variando la dimensión de los elementos en 
-\begin_inset Formula $d=\{2,\,4,\,8,\,16\}$
-\end_inset
-
- y la capacidad máxima de los nodos 
-\begin_inset Formula $M=100$
-\end_inset
-
-.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
-Análisis
-\end_layout
-
-\begin_layout Standard
-E
 \end_layout
 
 \begin_layout Section
-Búsqueda
-\end_layout
-
-\begin_layout Subsection
+Búsqueda 
 \begin_inset Formula $R-Tree$
 \end_inset
 
@@ -464,13 +881,143 @@ Se probó la búsqueda en el árbol realizando consultas en grupos de
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dimensión
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Máx por nodo
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+50
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+100
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio nodos visitados
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+119
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+26
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Promedio de tiempo de consulta
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+9.186493
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4.150053
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
 
 \begin_layout Plain Layout
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
+Construido con Particionamiento lineal
 \end_layout
 
 \end_inset
@@ -483,66 +1030,49 @@ status collapsed
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Section
 Análisis
 \end_layout
 
 \begin_layout Standard
-E
+A medida que aumenta la dimensión de los puntos:
 \end_layout
 
-\begin_layout Subsection
-\begin_inset Formula $R^{+}-Tree$
-\end_inset
-
-
+\begin_layout Itemize
+Se necesitan más accesos a disco, dado que la información pesa más, y por
+ tanto se incrementa el tiempo promedio de inserción.
 \end_layout
 
-\begin_layout Subsubsection
-Resultados
+\begin_layout Itemize
+Disminuye la cantidad de nodos internos del árbol.
 \end_layout
 
-\begin_layout Standard
-Se probó la búsqueda en el árbol realizando consultas en grupos de 
-\begin_inset Formula $Q=\{1000,\,2000,\,3000,\,4000,\,5000\}$
-\end_inset
-
- y un radio de consulta entre 
-\begin_inset Formula $r=\{0.25,\,0.5,\,0.75\}$
-\end_inset
-
- por-ciento de la raíz de la dimensión.
+\begin_layout Itemize
+Disminuye considerablemente la eficiencia de la búsqueda, y es necesario
+ recorrer más nodos del árbol.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Caption
-
-\begin_layout Plain Layout
-
+Cuando aumentamos el tamaño máximo del nodo:
 \end_layout
 
-\end_inset
-
-
+\begin_layout Itemize
+Disminuye el promedio de particiones por nodo, lo que es lógico dado que
+ insertamos la misma cantidad de elementos.
 \end_layout
 
-\end_inset
-
-
+\begin_layout Itemize
+Disminuye casi a la mitad el promedio de nodos totales del árbol, y por
+ tanto su altura.
 \end_layout
 
-\begin_layout Subsubsection
-Análisis
+\begin_layout Itemize
+Disminuye a menos de la mitad el número de nodos internos.
 \end_layout
 
-\begin_layout Standard
-E
+\begin_layout Itemize
+Al haber una considerable disminución de nodos, disminuye también el número
+ de nodos visitados en una consulta, y por tanto el tiempo de búsqueda.
 \end_layout
 
 \begin_layout Chapter
@@ -554,56 +1084,21 @@ Conclusiones
 \begin_layout Standard
 
 \lang spanish
-parámetros que fijar en el entrenamiento de RNA.
- En este trabajo se dejaron fijos las implementaciones de BackPropagation
- y la función de activación sin embargo hay varias opciones para elegir
- entre estas, cada una para determinados tipos de problemas y con sus caracterís
-ticas particulares.
- El algoritmo usado 
-\begin_inset Quotes eld
-\end_inset
-
-trainlm
-\begin_inset Quotes erd
-\end_inset
-
- es bastante rápido por lo que sirve para comparar diferentes redes, y la
- función de activación 
-\begin_inset Quotes eld
-\end_inset
-
-tansig
-\begin_inset Quotes erd
-\end_inset
-
- sirve para valores positivos y negativos, mientras que 
-\begin_inset Quotes eld
-\end_inset
-
-logsig
-\begin_inset Quotes erd
-\end_inset
-
- solo para valores positivos.
- En un comienzo se probo con 
-\begin_inset Quotes eld
-\end_inset
-
-logsig
-\begin_inset Quotes erd
-\end_inset
-
- pero no se obtenían buenos resultados porque algunos de los elementos del
- vector de características son cero.
+Los R-Trees presentan un desempeño bastante aceptable para almacenamiento
+ y consulta de estructuras geométricas, pero su desempeño comienza a bajar
+ al aumentar la dimensionalidad.
+ 
 \end_layout
 
 \begin_layout Standard
 
 \lang spanish
-Matlab proporciona un sinnúmero de herramientas para el entrenamiento de
- redes neuronales de diferentes tipos y con diferentes propósitos, y también
- provee una interfaz gráfica para estos, que facilita la comprensión del
- pro
+Es necesario ajustar sus parametros de forma de obtener un mejor rendimiento.
+ Para esto hay que considerar el tamaño de los bloques, así como la cantidad
+ de datos que se espera almacenar, la naturaleza de las consultas a realizar
+ y el tamaño de los nodos.
+ También se puede optimizar para que se use al máximo la memoria primaria
+ disponible, lo que mejoraría la eficiencia de todo el proceso.
 \end_layout
 
 \end_body
