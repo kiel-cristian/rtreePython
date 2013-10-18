@@ -154,7 +154,7 @@ class RtreePlus(RtreeApi):
 
             if k - 1 > 0:
                 newParent = self.currentParent(k - 1)
-                self.splitOneLevel(self, newParent, k - 1, lastSplit)
+                self.splitOneLevel(self, lastSplit, newParent, k - 1)
             else:
                 self.makeNewRoot(lastSplit, parent)
                 return
