@@ -120,10 +120,10 @@ class RtreeApi(object):
                     s = s + " "*(4 * l + 1) + "Leaf: l=" + str(l) + " i=" + str(i) + " -> " + str(child) + "\n"
                     i = i + 1
             return s
-        return toStr(self.currentNode)
+        return toStr(self.root)
 
     def printTree(self):
-        self.printRec(self.currentNode)
+        self.printRec(self.root)
         self.goToRoot()
 
     def printRec(self, currentNode):
@@ -155,19 +155,98 @@ class RtreeApi(object):
         self.root = self.currentNode
 
     # Crea una nueva raiz recibiendo mbrPointer del hermano recien creado
-    def makeNewRoot(self, childMbrPointer):
+    def makeNewRoot(self, childMbrPointer, node = None):
         newRoot = self.newNode()
         newRoot.setAsRoot(0)  # raiz siempre en comienzo del archivo
 
-        self.nfh.reAllocate(self.currentNode)
+        if node == None:
+            self.nfh.reAllocate(self.currentNode)
+            newRoot.insert(self.currentNode.getMbrPointer())
+        else:
+            self.nfh.reAllocate(node)
+            newRoot.insert(node.getMbrPointer())
 
-        newRoot.insert(self.currentNode.getMbrPointer())
         newRoot.insert(childMbrPointer)
         self.save(newRoot)
 
-        self.root = newRoot
-        self.cache = [newRoot]
-        self.k = 1
+        self.root  = newRoot
+
+        self.expandCache(newRoot)
+
+    # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
+    def insertChild(self, newChild):
+        self.currentNode.insert(newChild)
+        self.updateCache()
+        self.save()
+
+    # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
+    def updateChild(self, mbrPointer):
+        self.currentNode.updateChild(mbrPointer)
+        self.updateCache()
+        self.save()
+
+    # Actualiza en el cache el nodo que acaba de cambiar
+    def updateCache(self, node = None, k = None):
+        if k == None:
+            k = self.currentHeigth()
+
+        if len(self.cache) > k:
+            if node == None:
+                self.cache[k] = self.currentNode
+            else:
+                self.cache[k] = node
+
+    def expandCache(self, newRoot):
+        self.cache = [newRoot] + self.cache
+        self.k = self.k + 1
+        self.updateCache()
+
+    # Vuelve puntero del nodo padre al ultimo almacenado en cache
+    def goToLastLevel(self):
+        self.k = len(self.cache)
+        self.currentNode = self.cache[-1]
+
+    def currentParent(self, k = None):
+        if k == None:
+            return self.cache[self.k-1]
+        else:
+            return self.cache[k]
+
+    def currentHeigth(self):
+        return self.k
+
+    # Baja un nivel en el arbol y prepara cache y nodo actual
+    def seekNode(self, mbrPointer):
+        pointer = mbrPointer.getPointer()
+
+        if len(self.cache) > self.k:
+            self.cache[self.k - 1] = self.currentNode
+        else:
+            self.cache = self.cache + [self.currentNode]
+        self.k = self.k + 1
+
+        self.currentNode = self.read(pointer)
+        return
+
+    # Escoger el padre del nodo actual
+    def chooseParent(self, destructive=True):
+        if self.k > 0:
+            self.currentNode = self.cache[self.k - 1]
+            if destructive:
+                self.cache = self.cache[0:self.k - 1]  # Por defecto el cache se destruye al subir al padre
+            self.k = self.k - 1
+        else:
+            raise RtreeError("Ya esta en la raiz")
+
+    # Escoge los nodos para proseguir con insercion
+    def chooseTree(self, mbrPointer):
+        childrenMbrs = self.currentNode.getChildren()
+        return self.sa.select(mbrPointer, childrenMbrs)
+
+    # Escoge los nodos segun criterio de busqueda
+    def chooseTreeForSearch(self, mbrO):
+        childrenMbrs = self.currentNode.getChildren()
+        return self.sa.radialSelect(mbrO, childrenMbrs)
 
     # Capacidad minima de nodos y hojas
     def m(self):
@@ -198,7 +277,7 @@ class RtreeApi(object):
     def search(self, radialMbr, fileResults, verbose=False, genFile=False):
         if genFile:
             fileResults.write("%s %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),str(radialMbr)))
-        t0 = time()        
+        t0 = time()
         self.searchR(radialMbr, fileResults, verbose, genFile)
         t1 = time()
         if genFile:
@@ -224,7 +303,7 @@ class RtreeApi(object):
 
             if self.currentHeigth() > 0:
                 self.chooseParent()
-                
+
         if genFile:
             for r in results:
                 file.write(str(r) + " ")
@@ -236,9 +315,6 @@ class RtreeApi(object):
     def insert(self, mbrPointer):
         pass
 
-    def currentHeigth(self):
-        return self.k
-
     # Guarda el nodo actual en disco
     def save(self, tree=None):
         if tree != None:
@@ -249,61 +325,6 @@ class RtreeApi(object):
     # Lee y entrega un nodo u hoja de disco
     def read(self, treeOffset):
         return self.nfh.readTree(treeOffset)
-
-    # Actualiza nodo actual insertando nuevo hijo y guardando posteriormente en disco
-    def insertChild(self, newChild):
-        self.currentNode.insert(newChild)
-        self.updateCache()
-        self.save()
-
-    # Actualiza nodo actual con la nueva version de uno de sus hijos (mbr,pointer)
-    def updateChild(self, mbrPointer):
-        self.currentNode.updateChild(mbrPointer)
-        self.updateCache()
-        self.save()
-
-    # Actualiza en el cache el nodo que acaba de cambiar
-    def updateCache(self):
-        k = self.currentHeigth()
-        if len(self.cache) > k:
-            self.cache[k] = self.currentNode
-
-    # Vuelve puntero del nodo padre al ultimo almacenado en cache
-    def goToLastLevel(self):
-        self.k = len(self.cache)
-
-    # Baja un nivel en el arbol y prepara cache y nodo actual
-    def seekNode(self, mbrPointer):
-        pointer = mbrPointer.getPointer()
-
-        if len(self.cache) > self.k:
-            self.cache[self.k - 1] = self.currentNode
-        else:
-            self.cache = self.cache + [self.currentNode]
-        self.k = self.k + 1
-
-        self.currentNode = self.read(pointer)
-        return
-
-    # Escoger el padre del nodo actual
-    def chooseParent(self, destructive=True):
-        if self.k > 0:
-            self.currentNode = self.cache[self.k - 1]
-            if destructive:
-                self.cache = self.cache[0:self.k - 1]  # Por defecto el cache se destruye al subir al padre
-            self.k = self.k - 1
-        else:
-            raise RtreeError("Ya esta en la raiz")
-
-    # Escoge los nodos que intersectan con el mbr para proceder con la insercion
-    def chooseTree(self, mbrPointer):
-        childrenMbrs = self.currentNode.getChildren()
-        return self.sa.select(mbrPointer, childrenMbrs)
-
-    # Escoge los nodos segun criterio de busqueda
-    def chooseTreeForSearch(self, mbrO):
-        childrenMbrs = self.currentNode.getChildren()
-        return self.sa.radialSelect(mbrO, childrenMbrs)
 
     # Ajusta mbrs de todos los nodos hasta llegar a la raiz
     def propagateAdjust(self):
