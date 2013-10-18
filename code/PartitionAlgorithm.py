@@ -145,8 +145,8 @@ class LinealPartition(PartitionAlgorithm):
 class CuadraticPartition(PartitionAlgorithm):
     def selectSeeds(self, mbrParent, mbrPointerList):
         length = len(mbrPointerList)
-        seedsIndex = [None , None]
-        actualDeadSpace = 0;
+        seedsIndex = [0, 1]
+        actualDeadSpace = 0
         maxDeadSpace = 0
         # Calculamos el máximo espacio muerto
         for i in range(length):
