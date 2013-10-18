@@ -117,11 +117,10 @@ class RtreePlus(RtreeApi):
         return self.sa.selectNearest(mbrPointer, self.currentNode.getChildren())
 
     def insertR(self, mbrPointer):
-        print("insertR:" + str(self.iterator))
-
-        print("ARBOL:")
-        print(self)
-        print("\n")
+        #print("insertR:" + str(self.iterator))
+        #print("ARBOL:")
+        #print(self)
+        #print("\n")
 
         # Bajo por todos los nodos adecuados
         if self.currentNode.isANode():
@@ -167,7 +166,7 @@ class RtreePlus(RtreeApi):
 
     # Ajusta Mbr del nodo padre del nodo actual
     def adjustOneLevel(self, node = None, k = None):
-        print("adjustOneLevel")
+        #print("adjustOneLevel")
         if node != None:
             if k > 0:
                 parent = self.currentParent(k)
@@ -191,7 +190,7 @@ class RtreePlus(RtreeApi):
 
     # Analogo a insert, inserta nodo de split en el padre
     def splitOneLevel(self, splitMbrPointer, node = None, k = None):
-        print("splitOneLevel")
+        #print("splitOneLevel")
         lastSplit = splitMbrPointer
         lastNode  = self.currentNode.getMbrPointer()
 
@@ -228,13 +227,13 @@ class RtreePlus(RtreeApi):
                     self.insertChild(lastSplit)
                     return RtreePlusAdjustStatus(self)
             else:
-                print("makeNewRoot")
+                #print("makeNewRoot")
                 self.makeNewRoot(lastSplit)
                 return RtreePlusBackToRecursionLevel(self)
 
     # Gatilla split en nodo, propaga split de nodos hijos de ser necesario y retorna el mbrPointer del nuevo nodo
     def splitNode(self, lastSplit, node = None, k = None):
-        print("spliNode")
+        #print("spliNode")
         # Modo recursivo hacia arriba
         if node != None:
             mbrPointers = node.getChildren() + [lastSplit]
@@ -270,7 +269,7 @@ class RtreePlus(RtreeApi):
 
     # Gatilla split en hoja y retorna el mbrPointer de la nueva hoja
     def splitLeaf(self, lastSplit):
-        print("splitLeaf")
+        #print("splitLeaf")
         mbrPointers = self.currentNode.getChildren() + [lastSplit]
         partitionData = self.pa.partition(self.currentNode.getMbr().expand(lastSplit), mbrPointers, self.m(), True) # leafMode = True
         self.currentNode.setData(partitionData[0][0], partitionData[0][1:]) # Guardo en el nodo (u hoja) antiguo la primera particion
@@ -282,8 +281,8 @@ class RtreePlus(RtreeApi):
 
         return newLeaf.getMbrPointer()
 
-    def splitNodeByCut(self, nodeToDivide, cut, dim):
-        print("splitNodeByCut")
+    def splitNodeByCut(self, nodeToDivide, cut, dim, k):
+        #print("splitNodeByCut")
         mbrPointers = nodeToDivide.getChildren()
         partitionData = self.pa.partitionOnCut(mbrPointers, cut, dim)
 
@@ -315,9 +314,9 @@ class RtreePlus(RtreeApi):
         return newNode
 
     def propagateSplitDownwards(self, parent, k, nodeToDivide, cut, dim):
-        print("propagateSplitDownwards")
+        #print("propagateSplitDownwards")
         if nodeToDivide.isANode() and self.pa.needsToSplitChilds():
-            newNode  = self.splitNodeByCut(nodeToDivide, cut, dim)
+            newNode  = self.splitNodeByCut(nodeToDivide, cut, dim, k)
 
             if parent.needToSplit():
                 self.splitOneLevel(newNode.getMbrPointer(), parent, k)
