@@ -42,7 +42,7 @@ class MRtree(object):
 
     def __str__(self):
         return "Tree: p=" + str(self.offset) + " " + str(self.mbr) + "\nchilds=" + str([str(_) for _ in self.mbrPointers])
-    
+
     def toStr(self):
         return "p=" + str(self.offset) + " " + str(self.mbr) + " N° childs=" + str(len(self.mbrPointers))
 
@@ -102,6 +102,28 @@ class MRtree(object):
         if not change:
             raise MRtreeError("Error actualizando hijo, no encontrado")
         self.mbr.expand(mbrPointer.getMbr())
+
+    def cutOnDimension(self, dim, cut):
+        mbrs = self.mbr.cutOnDimension(dim, cut)
+
+        newChildren  = []
+        newChildren2 = []
+
+        newMbr = mbrs[0]
+        newMbr2 = mbrs[1]
+
+        for mb in self.mbrPointers:
+            if mb.getMbr().areIntersecting(newMbr):
+                newChildren = newChildren + [mb]
+            else:
+                newChildren2 = newChildren2 + [mb]
+
+        self.setData(newMbr, newChildren)
+
+        newNode = MNode(self.M, self.d, -1, [], [])
+        newNode.setData(newMbr2, newChildren2)
+
+        return newNode
 
     def getPointer(self):
         return self.offset

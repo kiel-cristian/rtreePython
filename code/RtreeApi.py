@@ -155,13 +155,17 @@ class RtreeApi(object):
         self.root = self.currentNode
 
     # Crea una nueva raiz recibiendo mbrPointer del hermano recien creado
-    def makeNewRoot(self, childMbrPointer):
+    def makeNewRoot(self, childMbrPointer, node = None):
         newRoot = self.newNode()
         newRoot.setAsRoot(0)  # raiz siempre en comienzo del archivo
 
-        self.nfh.reAllocate(self.currentNode)
+        if node == None:
+            self.nfh.reAllocate(self.currentNode)
+            newRoot.insert(self.currentNode.getMbrPointer())
+        else:
+            self.nfh.reAllocate(node)
+            newRoot.insert(node.getMbrPointer())
 
-        newRoot.insert(self.currentNode.getMbrPointer())
         newRoot.insert(childMbrPointer)
         self.save(newRoot)
 
@@ -182,10 +186,15 @@ class RtreeApi(object):
         self.save()
 
     # Actualiza en el cache el nodo que acaba de cambiar
-    def updateCache(self):
-        k = self.currentHeigth()
+    def updateCache(self, node = None, k = None):
+        if k == None:
+            k = self.currentHeigth()
+
         if len(self.cache) > k:
-            self.cache[k] = self.currentNode
+            if node == None:
+                self.cache[k] = self.currentNode
+            else:
+                self.cache[k] = node
 
     def expandCache(self, newRoot):
         self.cache = [newRoot] + self.cache
@@ -196,6 +205,12 @@ class RtreeApi(object):
     def goToLastLevel(self):
         self.k = len(self.cache)
         self.currentNode = self.cache[-1]
+
+    def currentParent(self, k = None):
+        if k == None:
+            return self.cache[self.k-1]
+        else:
+            return self.cache[k]
 
     def currentHeigth(self):
         return self.k

@@ -31,7 +31,3 @@ class MbrPointer(MbrApi):
         return self.getMbr().areIntersecting(mbrPointer.getMbr())
     def getCenter(self):
         return self.getMbr().getCenter()
-    def cutOnDimension(self, dim, cut):
-        [mbrs] = self.getMbr().cutOnDimension(dim, cut)
-        self.mbr = mbrs[0]
-        return MbrPointer(mbrs[1], -1)
