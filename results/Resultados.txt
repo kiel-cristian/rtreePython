@@ -1,0 +1,5 @@
+2013-10-17 14:44 d=4 M=50 partitionType=0
+meanPartitionsPerNode meanInsertTime meanTotalNodes meanInternalNodes
+0.998608 0.012662 1777.356650 53.953150
+meanVisited meanQueryTime
+119.000000 9.186493
