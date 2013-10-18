@@ -121,6 +121,7 @@ class Mbr(MbrApi):
 
             if mbr.getMax(i) > dMax or dMax == 0:
                 self.setMax(i, mbr.getMax(i))
+        return self
 
     def areIntersecting(self,mbr):
         for d in range(self.d):
